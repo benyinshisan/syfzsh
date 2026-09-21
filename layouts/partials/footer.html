@@ -1,0 +1,51 @@
+{{- $c := site.Params.contact -}}
+<footer class="site-footer">
+
+  {{- /* ---------- 商联会会员滚动名录 ---------- */ -}}
+  {{- with site.Data.members.members }}
+  <div class="member-strip">
+    <div class="member-strip-head">
+      <img src="{{ "images/index_r86_c4.jpg" | relURL }}" width="984" height="35" alt="商联会会员">
+    </div>
+    <div class="member-strip-body sylh">
+      <div id="Scroll">
+        <div id="ScrollMe" style="overflow:hidden;height:{{ site.Params.home.membersMarqueeHeight | default 125 }}px"
+             data-marquee data-speed="90" data-step="1" data-pause="3000" data-gap="16">
+          <div class="member-links link">
+            {{- range . }}
+            <a href="{{ "/members/directory/" | relURL }}" title="{{ . }}">{{ . }}</a>
+            {{- end }}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {{- end }}
+
+  {{- /* ---------- 页脚联系信息 ---------- */ -}}
+  <div class="footer-bar"></div>
+  <div class="footer-contact">
+    <div class="footer-contact-inner">
+      <div class="footer-col">
+        <p>{{ $c.organizer }}</p>
+        <p>{{ $c.address }}</p>
+        <p>{{ $c.fax }}　{{ $c.tel }}</p>
+        <p>编号：<a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener">浙ICP备{{ $c.icpCode }}号</a></p>
+      </div>
+      <div class="footer-col">
+        <p>{{ $c.zip }}</p>
+        <p>邮箱：<a href="mailto:{{ $c.email }}">{{ $c.email }}</a></p>
+        <p class="footer-vendor">
+          <a href="{{ $c.vendorUrl }}" target="_blank" rel="noopener">
+            策划制作 <img src="{{ "images/unitednet.gif" | relURL }}" width="17" height="15" alt=""> {{ $c.vendor }}
+          </a>
+        </p>
+        <p class="footer-stats" id="site-stats"></p>
+      </div>
+      <div class="footer-qr">
+        <img src="{{ "images/2wm.png" | relURL }}" width="288" height="87" alt="微信公众号">
+      </div>
+    </div>
+  </div>
+
+</footer>

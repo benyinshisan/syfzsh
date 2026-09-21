@@ -1,0 +1,37 @@
+{{ define "main" }}
+{{ partial "components/page-banner.html" . }}
+{{ partial "components/breadcrumb.html" . }}
+
+<div class="inner-layout">
+  <div class="inner-main">
+    <div class="panel">
+      <div class="panel-head">{{ .Title }}</div>
+      <div class="panel-body">
+        <ul class="archive-list">
+          {{- range .Paginator.Pages }}
+          {{- $p := . }}
+          <li>
+            {{- with .Params.image }}
+            <div class="thumb">
+              <a href="{{ $p.RelPermalink }}" title="{{ $p.Title }}">
+                <img src="{{ . | relURL }}" alt="{{ $p.Title }}" loading="lazy">
+              </a>
+            </div>
+            {{- end }}
+            <div class="meta">
+              <h2><a href="{{ .RelPermalink }}">{{ .Title }}</a></h2>
+              <p class="info"><span class="date">{{ .Date.Format "2006-01-02" }}</span></p>
+            </div>
+          </li>
+          {{- end }}
+        </ul>
+      </div>
+    </div>
+    {{ partial "components/pagination.html" . }}
+  </div>
+
+  <aside class="inner-side">
+    {{ partial "components/sidebar.html" . }}
+  </aside>
+</div>
+{{ end }}

@@ -1,0 +1,333 @@
+##############################################################################
+#  浙江省商贸业联合会 — Hugo 站点配置
+#  由旧版静态站（assets/index.html）移植而来，详见 ARCHITECTURE.md
+#
+#  版本要求：Hugo >= 0.128（extended 非必需）
+#  已验证：0.140.2 / 0.154.5 / 0.166.0 均可正常构建，产出一致
+#  兼容性说明见 README.md「Hugo 版本兼容性」
+##############################################################################
+
+baseURL        = "https://www.zjsm.org/"
+title          = "浙江省商贸业联合会"
+defaultContentLanguage = "zh"
+locale         = "zh-CN"   # >=0.158 的新键名；旧版本静默忽略（模板统一用 site.Language.Lang）
+hasCJKLanguage = true
+enableRobotsTXT = true
+summaryLength  = 120
+
+# 输出：首页额外产出 JSON 搜索索引（layouts/index.searchindex.json）
+[outputs]
+  home    = ["HTML", "RSS", "searchindex"]
+  section = ["HTML", "RSS"]
+
+[outputFormats.searchindex]
+  mediaType      = "application/json"
+  baseName       = "searchindex"
+  isPlainText    = true
+  notAlternative = true
+
+[markup]
+  [markup.goldmark.renderer]
+    unsafe = true          # 旧站正文里带内联 HTML
+  [markup.tableOfContents]
+    startLevel = 2
+    endLevel   = 3
+
+[pagination]
+  pagerSize = 20
+
+##############################################################################
+#  站点参数
+##############################################################################
+[params]
+  siteName    = "浙江省商贸业联合会"
+  shortName   = "浙商联"
+  slogan      = "跨地区、跨行业的全省性商贸行业联合社会团体"
+  description = "浙江省商贸业联合会是由浙江省商务厅批准，由浙江省物产集团公司、浙江省商业集团公司、浙江省兴合集团公司、浙江省烟草公司、杭州联华华商集团公司、杭州大厦、中国小商品城集团股份有限公司、浙江淘宝网络有限公司等19家单位发起成立的跨地区、跨行业的全省性商贸行业联合社会团体。"
+  keywords    = "浙江省商贸业联合会,浙江省商务厅,浙江商贸,浙江商会,商贸协会,商贸流通,连锁经营,电子商务,物流配送,现代会展"
+  legacyHost  = "http://www.zjsm.org"
+
+  # ---- 页头 / 页脚联系信息（原 index.html 底部表格） ----
+  [params.contact]
+    organizer = "主办单位：浙江省商贸业联合会"
+    address   = "地址：杭州市延安路511号元通大厦1101、1102室"
+    zip       = "邮编：310006"
+    tel       = "电话：0571-85062226"
+    fax       = "传真：0571-85069995"
+    email     = "smylhh@126.com"
+    icpCode   = "11010204"
+    vendor    = "合众软件"
+    vendorUrl = "http://www.unitedsoft.cn"
+
+  # ---- 顶部工具条链接 ----
+  [[params.topLinks]]
+    label = "联系我们"
+    url   = "/about/contact/"
+
+  # ---- 首页版块的数据来源 ----------------------------------------------
+  # section 为 content/ 下的路径；count 为该版块在首页展示的条数。
+  [params.home]
+    # 图片新闻轮播：取所有 featured = true 的文章
+    featuredCount = 6
+    # 浙商联动态（头条 + 列表）
+    headlineSection = "news/association"
+    headlineCount   = 8
+    # 通知公告（无缝向上滚动）
+    noticeSection   = "news/notice"
+    noticeCount     = 10
+    # 中栏两块
+    headlinesSection = "industry/headlines"   # 综合要闻
+    headlinesCount   = 10
+    membersSection   = "members/dynamics"     # 会员动态
+    membersCount     = 10
+    # 会员名录滚动条目的高度与速度
+    membersMarqueeHeight = 125
+    noticeMarqueeHeight  = 290
+
+  # ---- 四页签切换区（对应旧站 news_div_1..4 + SwapImage()） ----
+  [[params.homeTabs]]
+    label  = "民生热点"
+    section = "industry/livelihood"
+    image  = "menu_r1_c1.jpg"
+    width  = 82
+  [[params.homeTabs]]
+    label  = "专家视点"
+    section = "industry/experts"
+    image  = "menu_r1_c2.jpg"
+    width  = 85
+  [[params.homeTabs]]
+    label  = "政策法规"
+    section = "policy/national"
+    image  = "menu_r1_c3.jpg"
+    width  = 85
+  [[params.homeTabs]]
+    label  = "党建工作"
+    section = "party/news"
+    image  = "menu_r1_c4.jpg"
+    imageActive = "menuhover_r1_c4.jpg"
+    width  = 85
+    active = true
+
+  # ---- 右侧栏图片位（旧站 link1.jpg / link2.jpg / index_r80_c38.jpg） ----
+  [[params.sideLinks]]
+    image = "link1.jpg"
+    url   = "/about/join/"
+    alt   = "入会指南"
+    width = 250
+    height = 52
+  [[params.sideLinks]]
+    image = "link2.jpg"
+    url   = "/services/"
+    alt   = "服务中心"
+    width = 250
+    height = 52
+  [[params.sideLinks]]
+    image = "index_r80_c38.jpg"
+    url   = "/services/trade/"
+    alt   = "商联会期刊"
+    width = 250
+    height = 52
+
+  # ---- 首页搜索框 ----
+  [params.search]
+    enable      = true
+    placeholder = "请输入标题或文号"
+    action      = "/search/"
+
+  # ---- 统计代码（旧站 cnzz，留空即不输出） ----
+  [params.analytics]
+    cnzzId = ""
+
+##############################################################################
+#  主导航（对应旧站 ul#nav，两级菜单用 parent 关联）
+##############################################################################
+[[menu.main]]
+  name = "首页"
+  pageRef = "/"
+  weight = 1
+
+# ---- 关于浙商联 ----------------------------------------------------------
+[[menu.main]]
+  name = "关于浙商联"
+  pageRef = "/about/"
+  weight = 2
+  identifier = "about"
+[[menu.main]]
+  name = "概 况"
+  pageRef = "/about/overview/"
+  parent = "about"
+  weight = 1
+[[menu.main]]
+  name = "章 程"
+  pageRef = "/about/charter/"
+  parent = "about"
+  weight = 2
+[[menu.main]]
+  name = "组织机构"
+  pageRef = "/about/organization/"
+  parent = "about"
+  weight = 3
+[[menu.main]]
+  name = "入会指南"
+  pageRef = "/about/join/"
+  parent = "about"
+  weight = 4
+[[menu.main]]
+  name = "联系我们"
+  pageRef = "/about/contact/"
+  parent = "about"
+  weight = 5
+
+# ---- 浙商联动态 ----------------------------------------------------------
+[[menu.main]]
+  name = "浙商联动态"
+  pageRef = "/news/"
+  weight = 3
+  identifier = "news"
+[[menu.main]]
+  name = "通知公告"
+  pageRef = "/news/notice/"
+  parent = "news"
+  weight = 1
+[[menu.main]]
+  name = "浙商联新闻"
+  pageRef = "/news/association/"
+  parent = "news"
+  weight = 2
+[[menu.main]]
+  name = "商联会活动"
+  pageRef = "/news/events/"
+  parent = "news"
+  weight = 3
+[[menu.main]]
+  name = "诚信评选"
+  pageRef = "/news/integrity/"
+  parent = "news"
+  weight = 4
+
+# ---- 行业动态 ------------------------------------------------------------
+[[menu.main]]
+  name = "行业动态"
+  pageRef = "/industry/"
+  weight = 4
+  identifier = "industry"
+[[menu.main]]
+  name = "要闻集锦"
+  pageRef = "/industry/headlines/"
+  parent = "industry"
+  weight = 1
+[[menu.main]]
+  name = "专家视点"
+  pageRef = "/industry/experts/"
+  parent = "industry"
+  weight = 2
+[[menu.main]]
+  name = "民生热点"
+  pageRef = "/industry/livelihood/"
+  parent = "industry"
+  weight = 3
+
+# ---- 政策法规 ------------------------------------------------------------
+[[menu.main]]
+  name = "政策法规"
+  pageRef = "/policy/"
+  weight = 5
+  identifier = "policy"
+[[menu.main]]
+  name = "国家政策"
+  pageRef = "/policy/national/"
+  parent = "policy"
+  weight = 1
+[[menu.main]]
+  name = "省内政策"
+  pageRef = "/policy/provincial/"
+  parent = "policy"
+  weight = 2
+[[menu.main]]
+  name = "政策文件"
+  pageRef = "/policy/documents/"
+  parent = "policy"
+  weight = 3
+
+# ---- 会员天地 ------------------------------------------------------------
+[[menu.main]]
+  name = "会员天地"
+  pageRef = "/members/"
+  weight = 6
+  identifier = "members"
+[[menu.main]]
+  name = "会员名录"
+  pageRef = "/members/directory/"
+  parent = "members"
+  weight = 1
+[[menu.main]]
+  name = "会员动态"
+  pageRef = "/members/dynamics/"
+  parent = "members"
+  weight = 2
+[[menu.main]]
+  name = "申请入会"
+  pageRef = "/about/join/"
+  parent = "members"
+  weight = 3
+
+# ---- 党群建设 ------------------------------------------------------------
+[[menu.main]]
+  name = "党群建设"
+  pageRef = "/party/"
+  weight = 7
+  identifier = "party"
+[[menu.main]]
+  name = "党建动态"
+  pageRef = "/party/news/"
+  parent = "party"
+  weight = 1
+[[menu.main]]
+  name = "党建活动"
+  pageRef = "/party/activities/"
+  parent = "party"
+  weight = 2
+[[menu.main]]
+  name = "清廉园地"
+  pageRef = "/party/integrity/"
+  parent = "party"
+  weight = 3
+
+# ---- 标准化工作 ----------------------------------------------------------
+[[menu.main]]
+  name = "标准化工作"
+  pageRef = "/standards/"
+  weight = 8
+  identifier = "standards"
+[[menu.main]]
+  name = "标准化动态"
+  pageRef = "/standards/news/"
+  parent = "standards"
+  weight = 1
+[[menu.main]]
+  name = "标准下载"
+  pageRef = "/standards/downloads/"
+  parent = "standards"
+  weight = 2
+[[menu.main]]
+  name = "政策法规"
+  pageRef = "/standards/policy/"
+  parent = "standards"
+  weight = 3
+
+# ---- 服务中心 ------------------------------------------------------------
+[[menu.main]]
+  name = "服务中心"
+  pageRef = "/services/"
+  weight = 9
+  identifier = "services"
+[[menu.main]]
+  name = "投资服务"
+  pageRef = "/services/investment/"
+  parent = "services"
+  weight = 1
+[[menu.main]]
+  name = "浙江商贸"
+  pageRef = "/services/trade/"
+  parent = "services"
+  weight = 2

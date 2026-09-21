@@ -1,0 +1,52 @@
+{{ define "main" }}
+{{ partial "components/breadcrumb.html" . }}
+
+<div class="inner-layout">
+  <div class="inner-main">
+    <article class="panel">
+      <div class="panel-body">
+        <header class="article-head">
+          <h1>{{ .Title }}</h1>
+          <div class="article-meta">
+            <span>发布日期：{{ .Date.Format "2006-01-02" }}</span>
+            {{- with .CurrentSection }}
+            <span>栏目：<a href="{{ .RelPermalink }}">{{ .Title }}</a></span>
+            {{- end }}
+            {{- with .Params.source }}<span>来源：{{ . }}</span>{{ end }}
+          </div>
+        </header>
+
+        {{- with .Params.image }}
+        <p style="text-align:center;margin:16px 0 0">
+          <img src="{{ . | relURL }}" alt="{{ $.Title }}" style="max-width:100%">
+        </p>
+        {{- end }}
+
+        <div class="article-body {{ with .Params.bodyClass }}{{ . }}{{ end }}">
+          {{ .Content }}
+        </div>
+
+        <footer class="article-foot">
+          {{- with .Params.legacyUrl }}
+          <p>旧站原文：<a href="{{ . }}" target="_blank" rel="noopener">{{ . }}</a></p>
+          {{- end }}
+          <nav class="article-nav">
+            <span class="prev">
+              {{- with .PrevInSection }}上一篇：<a href="{{ .RelPermalink }}" title="{{ .Title }}">{{ .Title | truncate 30 }}</a>
+              {{- else }}上一篇：没有了{{ end }}
+            </span>
+            <span class="next">
+              {{- with .NextInSection }}下一篇：<a href="{{ .RelPermalink }}" title="{{ .Title }}">{{ .Title | truncate 30 }}</a>
+              {{- else }}下一篇：没有了{{ end }}
+            </span>
+          </nav>
+        </footer>
+      </div>
+    </article>
+  </div>
+
+  <aside class="inner-side">
+    {{ partial "components/sidebar.html" . }}
+  </aside>
+</div>
+{{ end }}

@@ -1,0 +1,23 @@
+{{ define "main" }}
+{{ partial "components/page-banner.html" . }}
+{{ partial "components/breadcrumb.html" . }}
+
+<div class="inner-layout">
+  <div class="inner-main">
+    <div class="panel">
+      <div class="panel-head">全部{{ .Title }}</div>
+      <div class="panel-body">
+        <div class="directory-list">
+          {{- range .Pages }}
+          <a href="{{ .RelPermalink }}" style="width:33.33%;line-height:28px">{{ .Title }} ({{ len .Pages }})</a>
+          {{- end }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <aside class="inner-side">
+    {{ partial "components/sidebar.html" . }}
+  </aside>
+</div>
+{{ end }}

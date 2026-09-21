@@ -1,0 +1,27 @@
+<header class="site-header">
+
+  {{- /* ---------- 顶部工具条：日期 + 设为主页 / 加入收藏 / 联系我们 ---------- */ -}}
+  <div class="topbar">
+    <div class="topbar-inner">
+      <div class="topbar-date">今天是：<span id="today-date">—</span></div>
+      <div class="topbar-links">
+        <a href="javascript:void(0);" id="set-homepage">设为首页</a>
+        <a href="javascript:void(0);" id="add-favorite">加入收藏</a>
+        {{- range site.Params.topLinks }}
+        <a href="{{ .url | relURL }}">{{ .label }}</a>
+        {{- end }}
+      </div>
+    </div>
+  </div>
+
+  {{- /* ---------- 站点横幅 ---------- */ -}}
+  <div class="banner">
+    <a href="{{ "/" | relURL }}" title="{{ site.Title }}">
+      <img src="{{ "images/top2.jpg" | relURL }}" width="1000" height="217" alt="{{ site.Title }}">
+    </a>
+  </div>
+
+  {{- /* ---------- 主导航 ---------- */ -}}
+  {{ partial "nav.html" . }}
+
+</header>

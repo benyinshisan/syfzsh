@@ -1,0 +1,22 @@
+# 协会链接 / 会员单位图片位（首页右栏"协会链接"版块）
+#
+# 数据来源：旧站 index.html 的 fzjg_bg 图片位。
+# 单位名称已按 logo 图片逐张核对补全，并修正了旧站复制粘贴导致的重复网址。
+# 注意：scripts/import-legacy.py 只在文件不存在时生成骨架，不会覆盖本文件；
+#      如需重新抽取，使用 `python3 scripts/import-legacy.py ... --force`。
+partners:
+  - name: "浙江省餐饮行业协会"
+    logo: "/uploads/news/604113698932187500.jpg"
+    url: "http://www.zjcyxh.com/"
+  - name: "浙江省老字号企业协会"
+    logo: "/uploads/news/604113693544843750.jpg"
+    url: "http://www.zhlzh.com/"
+  - name: "浙江省美发美容行业协会"
+    logo: "/uploads/news/605990070144773980.jpg"
+    url: "http://www.zjmrmf.com/"
+  - name: "浙江省家用电器流通协会"
+    logo: "/uploads/news/604113693307031250.jpg"
+    url: "http://www.zjjdcn.cn/"
+  - name: "浙江省电子商务促进会"
+    logo: "/uploads/news/604113692845000000.jpg"
+    url: "https://www.zjepa.com.cn/"

@@ -1,0 +1,20 @@
+{{- /*
+  友情链接：旧站首页底部是 4 个 display:none 的 <select> 下拉框，
+  这里改为可见的链接块（数据来自 data/friendlinks.yaml）。
+  若想恢复旧站行为，给 .friendlinks 加 style="display:none" 即可。
+*/ -}}
+{{- with site.Data.friendlinks }}
+<div class="friendlinks">
+  <h2>友情链接</h2>
+  <dl>
+    {{- range $group, $links := . }}
+    <dt>{{ $group }}</dt>
+    <dd>
+      {{- range $links }}
+      <a href="{{ .url }}" target="_blank" rel="noopener" title="{{ .name }}">{{ .name }}</a>
+      {{- end }}
+    </dd>
+    {{- end }}
+  </dl>
+</div>
+{{- end }}

@@ -1,0 +1,52 @@
+{{- /*
+  首页
+  ---------------------------------------------------------------------------
+  旧站 index.html 的版块顺序：
+    ① 广告位（display:none）
+    ② 行一：图片新闻(342) + 浙商联动态(375) + 通知公告(260)
+    ③ 行二：综合要闻(344) + 会员动态(371) + 四页签 | 右栏 搜索/图片位/协会链接(239)
+    ④ 会员名录滚动 + 页脚（见 partials/footer.html）
+*/ -}}
+{{ define "main" }}
+<main class="site-main">
+
+  {{- /* ① 顶部通栏广告位：旧站默认隐藏，保留结构以便随时投放 */ -}}
+  {{- with site.Data.ads.top }}
+  <div class="container" style="padding:1px 0 10px;">
+    <a href="{{ .url }}" target="_blank" rel="noopener"><img src="{{ .image | relURL }}" width="1000" height="100" alt="{{ .alt }}"></a>
+  </div>
+  {{- end }}
+
+  {{- /* ② 行一 */ -}}
+  <div class="home-row home-row-a container">
+    <div class="col-a-main">
+      {{ partial "home/featured.html" . }}
+      <div class="jrq"></div>
+      {{ partial "home/headline.html" . }}
+    </div>
+    <div class="col-a-side">
+      {{ partial "home/notice.html" . }}
+    </div>
+  </div>
+
+  {{- /* ③ 行二 */ -}}
+  <div class="home-row home-row-b container">
+    <div class="col-b-main">
+      {{ partial "home/dual.html" . }}
+      {{ partial "home/tabs.html" . }}
+    </div>
+    <div class="col-b-side">
+      {{ partial "components/sidebar.html" . }}
+    </div>
+  </div>
+
+  {{- /* 旧站首页正文（保留可编辑性：content/_index.md 的正文渲染在此） */ -}}
+  {{- with .Content }}
+  <div class="container home-content">{{ . }}</div>
+  {{- end }}
+
+  {{- /* ④ 友情链接（旧站为隐藏的下拉框） */ -}}
+  {{ partial "home/friendlinks.html" . }}
+
+</main>
+{{ end }}

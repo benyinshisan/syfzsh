@@ -1,0 +1,15 @@
+{{- /* 站点配置，供 theme.js 读取 */ -}}
+<script id="site-config" type="application/json">
+{
+  "baseURL": {{ site.BaseURL | jsonify }},
+  "searchIndex": {{ "searchindex.json" | relURL | jsonify }},
+  "lang": {{ site.Language.Lang | jsonify }}
+}
+</script>
+
+{{- $js := resources.Get "js/theme.js" | minify | fingerprint }}
+<script src="{{ $js.RelPermalink }}" integrity="{{ $js.Data.Integrity }}"></script>
+
+{{- with site.Params.analytics.cnzzId }}
+<script src="https://s6.cnzz.com/stat.php?id={{ . }}&web_id={{ . }}&show=pic" charset="utf-8"></script>
+{{- end }}

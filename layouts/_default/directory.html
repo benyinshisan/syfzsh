@@ -1,0 +1,38 @@
+{{- /* 会员名录：来自 data/members.yaml（旧站首页底部滚动条的完整名单） */ -}}
+{{ define "main" }}
+{{ partial "components/page-banner.html" . }}
+{{ partial "components/breadcrumb.html" . }}
+
+{{- $members := site.Data.members.members | default slice }}
+<div class="inner-layout">
+  <div class="inner-main">
+    <div class="panel">
+      <div class="panel-head">会员名录（共 {{ len $members }} 家）</div>
+      <div class="panel-body">
+        <form class="search-form" onsubmit="return false">
+          <label class="sr-only" for="member-filter">按名称筛选</label>
+          <input type="text" id="member-filter" data-filter="#member-list li"
+                 placeholder="输入单位名称关键字筛选…" autocomplete="off">
+        </form>
+
+        {{- with $members }}
+        <ul class="directory-list" id="member-list">
+          {{- range . }}
+          <li><span title="{{ . }}">{{ . }}</span></li>
+          {{- end }}
+        </ul>
+        <p class="empty-tip" id="member-empty" style="display:none">没有匹配的会员单位。</p>
+        {{- else }}
+        <p class="empty-tip">data/members.yaml 为空，请先运行 scripts/import-legacy.py 导入。</p>
+        {{- end }}
+
+        {{- with .Content }}<div class="article-body">{{ . }}</div>{{ end }}
+      </div>
+    </div>
+  </div>
+
+  <aside class="inner-side">
+    {{ partial "components/sidebar.html" . }}
+  </aside>
+</div>
+{{ end }}

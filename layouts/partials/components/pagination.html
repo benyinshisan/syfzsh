@@ -1,0 +1,32 @@
+{{- /* 分页器：兼容 Hugo 0.128+ 的 .Paginator */ -}}
+{{- $p := .Paginator -}}
+{{- if gt $p.TotalPages 1 }}
+<nav class="pagination" aria-label="分页">
+  {{- with $p.First }}
+  <a href="{{ .URL }}"{{ if eq .PageNumber $p.PageNumber }} class="disabled"{{ end }}>首页</a>
+  {{- end }}
+  {{- with $p.Prev }}
+  <a href="{{ .URL }}">上一页</a>
+  {{- else }}
+  <span class="disabled">上一页</span>
+  {{- end }}
+
+  {{- range $p.Pagers }}
+  {{- if eq .PageNumber $p.PageNumber }}
+  <span class="active">{{ .PageNumber }}</span>
+  {{- else if and (ge .PageNumber (sub $p.PageNumber 3)) (le .PageNumber (add $p.PageNumber 3)) }}
+  <a href="{{ .URL }}">{{ .PageNumber }}</a>
+  {{- end }}
+  {{- end }}
+
+  {{- with $p.Next }}
+  <a href="{{ .URL }}">下一页</a>
+  {{- else }}
+  <span class="disabled">下一页</span>
+  {{- end }}
+  {{- with $p.Last }}
+  <a href="{{ .URL }}"{{ if eq .PageNumber $p.PageNumber }} class="disabled"{{ end }}>末页</a>
+  {{- end }}
+  <span class="pagination-info">共 {{ $p.TotalPages }} 页 / {{ $p.TotalNumberOfElements }} 条</span>
+</nav>
+{{- end }}

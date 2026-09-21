@@ -1,0 +1,27 @@
+{{- /* 图片新闻：轮播，取所有 featured = true 的文章 */ -}}
+{{- $count := site.Params.home.featuredCount | default 6 -}}
+{{- $pages := first $count (where site.RegularPages "Params.featured" true).ByDate.Reverse -}}
+{{- with $pages }}
+<div class="featured-box">
+  <div class="box-head">
+    <img src="{{ "images/sypic_1.jpg" | relURL }}" width="342" height="50" alt="图片新闻">
+  </div>
+  <div class="featured-body picnews">
+    <div class="sy_ban" data-carousel data-interval="3000">
+      <ul class="sy_ban_p">
+        {{- range $i, $p := . }}
+        <li{{ if eq $i 0 }} class="on"{{ end }}>
+          <a href="{{ $p.RelPermalink }}" title="{{ $p.Title }}">
+            <img src="{{ (or $p.Params.image "images/sypic_1.jpg") | relURL }}" width="320" height="240" alt="{{ $p.Title }}">
+            <p>{{ $p.Title }}</p>
+          </a>
+        </li>
+        {{- end }}
+      </ul>
+      <div class="sy_ban_x">
+        {{- range $i, $p := . }}<span{{ if eq $i 0 }} class="on"{{ end }}>{{ add $i 1 }}</span>{{ end }}
+      </div>
+    </div>
+  </div>
+</div>
+{{- end }}

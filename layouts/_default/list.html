@@ -1,0 +1,55 @@
+{{ define "main" }}
+{{ partial "components/page-banner.html" . }}
+{{ partial "components/breadcrumb.html" . }}
+
+<div class="inner-layout">
+  <div class="inner-main">
+    <div class="panel">
+      <div class="panel-head">{{ .Title }}</div>
+      <div class="panel-body">
+        {{- with .Description }}
+        <p class="section-desc">{{ . }}</p>
+        {{- end }}
+
+        {{- $pages := .Paginator.Pages }}
+        {{- with $pages }}
+        <ul class="archive-list">
+          {{- range . }}
+          {{- $p := . }}
+          <li>
+            {{- with .Params.image }}
+            <div class="thumb">
+              <a href="{{ $p.RelPermalink }}" title="{{ $p.Title }}">
+                <img src="{{ . | relURL }}" alt="{{ $p.Title }}" loading="lazy">
+              </a>
+            </div>
+            {{- end }}
+            <div class="meta">
+              <h2><a href="{{ .RelPermalink }}" title="{{ .Title }}">{{ .Title }}</a></h2>
+              {{- $summary := .Params.summary | default .Summary | plainify | truncate 120 }}
+              {{- if and $summary (ne $summary (.Title | plainify)) }}
+              <p class="summary">{{ $summary }}</p>
+              {{- end }}
+              <p class="info">
+                <span class="date">{{ .Date.Format "2006-01-02" }}</span>
+                {{- with .CurrentSection }}{{ if ne .Title $.Title }}<span class="section">{{ .Title }}</span>{{ end }}{{ end }}
+                {{- with .Params.legacyUrl }}<span class="legacy"><a href="{{ . }}" target="_blank" rel="noopener">旧站原文</a></span>{{ end }}
+              </p>
+            </div>
+          </li>
+          {{- end }}
+        </ul>
+        {{- else }}
+        <p class="empty-tip">该栏目暂无内容</p>
+        {{- end }}
+      </div>
+    </div>
+
+    {{ partial "components/pagination.html" . }}
+  </div>
+
+  <aside class="inner-side">
+    {{ partial "components/sidebar.html" . }}
+  </aside>
+</div>
+{{ end }}

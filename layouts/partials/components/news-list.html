@@ -1,0 +1,30 @@
+{{- /*
+  通用新闻列表
+  参数（dict）：
+    pages     page collection（必填）
+    withDate  bool   是否显示 [MM-DD]，默认 true
+    newDays   int    距最新一条多少天内标 "new"，默认 14（0 = 不标）
+    empty     string 无内容时的提示
+*/ -}}
+{{- $pages := .pages -}}
+{{- $withDate := true -}}
+{{- if isset . "withDate" }}{{ $withDate = .withDate }}{{ end -}}
+{{- $newDays := 14 -}}
+{{- if isset . "newDays" }}{{ $newDays = .newDays }}{{ end -}}
+{{- $empty := .empty | default "暂无内容" -}}
+
+{{- with $pages -}}
+{{- $newest := (index . 0).Date -}}
+{{- $threshold := $newest.AddDate 0 0 (int (mul -1 $newDays)) -}}
+<ul class="news-list">
+  {{- range . }}
+  <li{{ if and (gt $newDays 0) (.Date.After $threshold) }} class="is-new"{{ end }}>
+    <i class="dot"></i>
+    <a href="{{ .RelPermalink }}" title="{{ .Title }}">{{ .Title }}</a>
+    {{- if $withDate }}<span class="date">[{{ .Date.Format "01-02" }}]</span>{{ end }}
+  </li>
+  {{- end }}
+</ul>
+{{- else -}}
+<p class="empty-tip">{{ $empty }}</p>
+{{- end -}}

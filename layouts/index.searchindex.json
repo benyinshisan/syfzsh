@@ -1,0 +1,18 @@
+{{- /* 首页的 JSON 搜索索引（outputFormat: searchindex） */ -}}
+{{- $out := slice -}}
+{{- range where site.RegularPages "Kind" "page" -}}
+  {{- $section := "" -}}
+  {{- with .CurrentSection }}{{ $section = .Title }}{{ end -}}
+  {{- $tags := .Params.tags | default (slice) -}}
+  {{- $plain := .Plain | plainify | htmlUnescape -}}
+  {{- $out = $out | append (dict
+        "title"   .Title
+        "url"     .RelPermalink
+        "date"    (.Date.Format "2006-01-02")
+        "section" $section
+        "tags"    (delimit $tags " ")
+        "excerpt" ($plain | truncate 140)
+        "content" ($plain | truncate 400)
+      ) -}}
+{{- end -}}
+{{- $out | jsonify -}}

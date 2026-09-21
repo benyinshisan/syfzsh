@@ -1,0 +1,61 @@
+{{- /*
+  四页签切换区（旧站 news_div_1..4 + web.js SwapImage）
+  页签定义见 hugo.toml 的 [[params.homeTabs]]，可自由增删改。
+  每个面板：左侧 1 张大图 + 图注，右侧 N 条列表；首条（带 image 的）作大图。
+*/ -}}
+{{- $tabs := site.Params.homeTabs -}}
+{{- with $tabs }}
+{{- $activeIdx := 0 -}}
+{{- range $i, $t := . }}{{ if $t.active }}{{ $activeIdx = $i }}{{ end }}{{ end -}}
+<div class="tabs" data-tabs>
+
+  <div class="tab-nav">
+    {{- range $i, $t := . }}
+    {{- $img := printf "images/%s" $t.image | relURL }}
+    {{- $imgOn := $img }}{{ with $t.imageActive }}{{ $imgOn = printf "images/%s" . | relURL }}{{ end }}
+    {{- $href := "" }}{{ with site.GetPage $t.section }}{{ $href = .RelPermalink }}{{ end }}
+    <button type="button"
+            class="{{ if $t.active }}on{{ end }}"
+            data-tab="{{ $i }}"
+            data-img="{{ $img }}"
+            data-img-active="{{ $imgOn }}"
+            data-href="{{ $href }}"
+            title="{{ $t.label }}">
+      <img src="{{ if $t.active }}{{ $imgOn }}{{ else }}{{ $img }}{{ end }}"
+           width="{{ $t.width | default 85 }}" height="23" alt="{{ $t.label }}">
+    </button>
+    {{- end }}
+    {{- $activeTab := index . $activeIdx }}
+    {{- $moreHref := "" }}{{ with site.GetPage $activeTab.section }}{{ $moreHref = .RelPermalink }}{{ end }}
+    <a class="tab-more" href="{{ $moreHref }}">&gt;&gt;更多</a>
+  </div>
+
+  <div class="tab-panels">
+    {{- range $i, $t := . }}
+    {{- $pages := slice }}
+    {{- with site.GetPage $t.section }}{{ $pages = .RegularPages.ByDate.Reverse }}{{ end }}
+    <div class="tab-panel{{ if $t.active }} on{{ end }}" data-tab-panel="{{ $i }}">
+      {{- with $pages }}
+      {{- $figure := index . 0 }}
+      <div class="tab-figure">
+        <div class="frame">
+          <a href="{{ $figure.RelPermalink }}" title="{{ $figure.Title }}">
+            <img src="{{ (or $figure.Params.image "images/sypic_1.jpg") | relURL }}" width="224" height="151" alt="{{ $figure.Title }}">
+          </a>
+        </div>
+        <div class="caption">
+          <a href="{{ $figure.RelPermalink }}" title="{{ $figure.Title }}">{{ $figure.Title | truncate 34 }}</a>
+        </div>
+      </div>
+      <div class="tab-list">
+        {{ partial "components/news-list.html" (dict "pages" (first 8 (after 1 .)) "withDate" false) }}
+      </div>
+      {{- else }}
+      <p class="empty-tip">该栏目暂无内容</p>
+      {{- end }}
+    </div>
+    {{- end }}
+  </div>
+
+</div>
+{{- end }}

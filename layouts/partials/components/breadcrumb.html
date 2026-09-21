@@ -1,0 +1,17 @@
+{{- /*
+  面包屑：首页 / 一级频道 / 二级频道 / 当前页
+  依赖 Hugo 的 section 树，无需手工维护。
+*/ -}}
+<nav class="breadcrumb" aria-label="面包屑">
+  <a href="{{ "/" | relURL }}">首页</a>
+  {{- range .Ancestors.Reverse }}
+  {{- if not .IsHome }}
+  <span class="sep">/</span>
+  <a href="{{ .RelPermalink }}">{{ .LinkTitle | default .Title }}</a>
+  {{- end }}
+  {{- end }}
+  {{- if not .IsPage }}
+  <span class="sep">/</span>
+  <span>{{ .LinkTitle | default .Title | truncate 30 }}</span>
+  {{- end }}
+</nav>

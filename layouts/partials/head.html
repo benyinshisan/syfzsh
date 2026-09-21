@@ -1,0 +1,36 @@
+{{- $isHome := .IsHome -}}
+{{- $title := cond $isHome (printf "%s — %s" site.Title site.Params.slogan) (printf "%s — %s" .Title site.Title) -}}
+{{- $desc := or .Description .Params.summary site.Params.description -}}
+<meta charset="utf-8">
+<meta name="viewport" content="width=1000">
+<title>{{ $title }}</title>
+<meta name="keywords" content="{{ or .Params.keywords site.Params.keywords }}">
+<meta name="description" content="{{ $desc | plainify | truncate 180 }}">
+<meta name="author" content="{{ site.Title }}">
+<link rel="canonical" href="{{ .Permalink }}">
+
+{{- /* ---------- Open Graph ---------- */ -}}
+<meta property="og:type" content="{{ cond $isHome "website" "article" }}">
+<meta property="og:title" content="{{ $title }}">
+<meta property="og:description" content="{{ $desc | plainify | truncate 180 }}">
+<meta property="og:url" content="{{ .Permalink }}">
+<meta property="og:site_name" content="{{ site.Title }}">
+{{- with .Params.image }}
+<meta property="og:image" content="{{ . | absURL }}">
+{{- end }}
+
+{{- /* ---------- RSS ---------- */ -}}
+{{ with .OutputFormats.Get "rss" }}
+<link rel="alternate" type="application/rss+xml" href="{{ .Permalink }}" title="{{ site.Title }}">
+{{ end }}
+
+{{- /* ---------- 样式：Hugo Pipes 合并 + 压缩 + 指纹 ---------- */ -}}
+{{- $css := slice
+      (resources.Get "css/legacy.css")
+      (resources.Get "css/default.css")
+      (resources.Get "css/theme.css")
+    | resources.Concat "css/zjsm.css" | minify | fingerprint -}}
+<link rel="stylesheet" href="{{ $css.RelPermalink }}" integrity="{{ $css.Data.Integrity }}">
+
+<link rel="icon" href="{{ "images/dian1.gif" | relURL }}">
+</head>

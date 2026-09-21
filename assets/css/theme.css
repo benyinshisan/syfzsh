@@ -1,0 +1,436 @@
+@charset "UTF-8";
+/* ==========================================================================
+   theme.css — 旧站版式的现代化重写
+   --------------------------------------------------------------------------
+   旧站用 table + 切图拼版（1000px 定宽）。这里保留同样的视觉规格与切图，
+   但改用 flex / 语义标签重排，并把原先依赖 jQuery + SuperSlide 的四个
+   交互（导航下拉、图片新闻轮播、通知公告滚动、会员名录滚动、页签切换）
+   全部改为 theme.js 里的原生实现。
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. 基础
+   -------------------------------------------------------------------------- */
+* { box-sizing: border-box; }
+
+html { background: #ffffff; }
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: "宋体", "Microsoft YaHei", "微软雅黑", Arial, sans-serif;
+  font-size: 12px;
+  color: #000;
+  background: #fff url(../images/bg.gif) repeat-x left top;
+  text-align: center;                 /* 让定宽容器居中（旧站靠 table align=center） */
+}
+
+a { color: #000; text-decoration: none; }
+a:hover { color: red; }
+
+img { border: 0; display: inline-block; vertical-align: middle; }
+ul, li, h1, h2, h3, h4, p { margin: 0; padding: 0; }
+li { list-style: none; }
+
+#wrapper {
+  width: 1000px;
+  margin: 0 auto;
+  background: #fff;
+  text-align: left;
+}
+
+/* 站内通用容器（旧站是 width=987 align=center 的表格） */
+.container { width: 987px; margin: 0 auto; }
+
+/* 无障碍：仅屏幕阅读器可见 */
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+/* --------------------------------------------------------------------------
+   2. 页头：工具条 / 横幅 / 主导航
+   -------------------------------------------------------------------------- */
+.topbar {
+  height: 30px;
+  line-height: 30px;
+  background: url(../images/toptop.jpg) repeat-x left top;
+}
+.topbar-inner { width: 1000px; margin: 0 auto; display: flex; }
+.topbar-date { flex: 0 0 781px; }
+.topbar-links { flex: 1; text-align: right; font-size: 12px; padding-right: 14px; }
+.topbar-links a { margin-left: 16px; }
+
+.banner { line-height: 0; }
+.banner img { width: 1000px; height: 217px; }
+
+.main-nav {
+  height: 32px;
+  background: url(../images/topbg.jpg) repeat-x left top;
+  position: relative;
+  z-index: 20;
+}
+.nav {
+  width: 1000px;
+  margin: 0 auto;
+  padding-left: 15px;
+  height: 32px;
+  line-height: 32px;
+  position: relative;
+}
+.nav::after { content: "."; display: block; height: 0; clear: both; visibility: hidden; }
+.nav .nLi { float: left; position: relative; }
+.nav .nLi h3 { font-weight: normal; }
+.nav .nLi h3 a {
+  display: block;
+  padding: 0 25px;
+  font-size: 14px;
+  font-weight: bold;
+  color: #fff;
+  line-height: 32px;
+}
+.nav .nLi:hover h3 a,
+.nav .nLi.on h3 a { color: #ffe400; }
+
+/* 二级下拉：旧站由 SuperSlide 的 slideDown 驱动，这里改为纯 CSS */
+.nav .sub {
+  display: none;
+  position: absolute;
+  left: 6px;
+  top: 32px;
+  width: 100px;
+  padding: 5px 0;
+  background: #2964b4;
+  line-height: 26px;
+  z-index: 30;
+}
+.nav .nLi:hover .sub { display: block; }
+.nav .sub li { list-style: none; }
+.nav .sub a { display: block; padding: 0 10px; font-weight: normal; color: #fff; }
+.nav .sub a:hover { background: #68b9f0; color: #fff; }
+
+/* --------------------------------------------------------------------------
+   3. 首页骨架
+   -------------------------------------------------------------------------- */
+.site-main { width: 1000px; background: #fff; padding-bottom: 4px; }
+
+/* 第一行：左 727（图片新闻 342 + 间隙 10 + 浙商联动态 375）+ 右 260 */
+.home-row { display: flex; width: 987px; margin: 0 auto; }
+.home-row-a { padding-top: 8px; }
+.col-a-main { width: 727px; display: flex; }
+.col-a-side { width: 260px; padding-top: 6px; text-align: right; }
+.col-a-side > .side-card { display: inline-block; text-align: left; }
+
+/* 第二行：左 748 + 右 239 */
+.home-row-b { padding-top: 8px; }
+.col-b-main { width: 748px; }
+.col-b-side { width: 239px; }
+
+/* 版块标题切图 */
+.box-head { line-height: 0; position: relative; }
+.box-head .more {
+  position: absolute; right: 8px; top: 4px;
+  font-size: 12px; color: #1F55A9; line-height: 20px;
+}
+.box-head .more:hover { color: red; }
+
+/* --------------------------------------------------------------------------
+   4. 新闻列表（旧站 .newslist 的 ul 版）
+   -------------------------------------------------------------------------- */
+.news-list { margin-top: 10px; }
+.news-list li {
+  display: flex;
+  align-items: flex-start;
+  height: 25px;
+  line-height: 25px;
+  background: url(../images/index_r41_c4.gif) repeat-x bottom;
+  overflow: hidden;
+}
+.news-list li .dot { flex: 0 0 15px; height: 25px; background: url(../images/index_r39_c7.jpg) no-repeat left 10px; }
+.news-list li a { flex: 1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.news-list li .date { flex: 0 0 56px; text-align: center; color: #333; }
+.news-list li.is-new a::after {
+  content: "new";
+  display: inline-block; margin-left: 4px; padding: 0 3px;
+  font-size: 9px; line-height: 11px; color: #fff;
+  background: #e4393c; border-radius: 2px; vertical-align: 2px;
+}
+
+/* --------------------------------------------------------------------------
+   5. 图片新闻轮播（旧站 .sy_ban + SuperSlide）
+   -------------------------------------------------------------------------- */
+.featured-box { width: 342px; }
+.featured-body { height: 240px; padding-top: 4px; }
+.sy_ban { width: 320px; background: #fff; position: relative; margin: 0 auto; }
+.sy_ban_p { width: 320px; height: 274px; overflow: hidden; position: relative; }
+.sy_ban_p li {
+  position: absolute; inset: 0;
+  opacity: 0; transition: opacity .5s ease;
+  text-align: center; line-height: 30px;
+}
+.sy_ban_p li.on { opacity: 1; z-index: 2; }
+.sy_ban_p li img { width: 320px; height: 240px; }
+.sy_ban_p li p {
+  width: 320px; margin: 4px 0; padding: 2px 4px;
+  background: #c0c0c0; font-size: 12px; line-height: 20px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.sy_ban_p li:hover img { opacity: .75; }
+
+.sy_ban_x {
+  position: absolute; right: 12px; bottom: 34px; height: 20px; z-index: 5;
+  line-height: 20px; text-align: right;
+}
+.sy_ban_x span {
+  display: inline-block; width: 14px; height: 14px; margin: 0 2px;
+  background: #b9b9b9; color: #fff; font-size: 11px; font-weight: bold;
+  line-height: 14px; text-align: center; cursor: pointer;
+}
+.sy_ban_x span.on { background: #0767B3; }
+
+/* --------------------------------------------------------------------------
+   6. 通知公告滚动（旧站 #demo9）
+   -------------------------------------------------------------------------- */
+.notice-card { width: 253px; }
+.notice-body {
+  background: url(../images/index_r6_c37.jpg) repeat-y left top;
+  padding: 5px 0 3px;
+  height: 290px;
+  overflow: hidden;
+  position: relative;
+}
+.notice-scroll { height: 290px; overflow: hidden; }
+.notice-list { width: 91%; margin: 0 auto; }
+.notice-list li {
+  display: flex; gap: 5px; align-items: flex-start;
+  padding: 4px 0; font-size: 12px;
+}
+.notice-list li .dot {
+  flex: 0 0 4px; width: 4px; height: 15px; margin-top: 3px;
+  background: url(../images/dian1.gif) no-repeat left top;
+}
+.notice-list li a { flex: 1; line-height: 20px; }
+.notice-list li + li { border-top: 1px solid #e7e7e7; }
+
+/* --------------------------------------------------------------------------
+   7. 浙商联动态（头条 + 列表）
+   -------------------------------------------------------------------------- */
+.headline-box { width: 375px; }
+.headline-title { padding: 6px 0; text-align: center; }
+.headline-title a { color: #1F55A9; font-size: 14px; font-weight: bold; }
+.headline-summary { padding: 0 0 6px 10px; line-height: 20px; color: #333; }
+.headline-summary .more { color: #1F55A9; }
+.titleborder { border-bottom: 1px solid #999; height: 1px; margin: 4px 0; }
+
+/* --------------------------------------------------------------------------
+   8. 综合要闻 / 会员动态 双栏
+   -------------------------------------------------------------------------- */
+.dual-col { display: flex; }
+.dual-col .col { width: 344px; }
+.dual-col .gap { width: 10px; }
+.dual-col .col-wide { width: 371px; }
+.col-body { height: 269px; padding: 0 12px; }
+.zjsd { background: url(../images/index_r52_c4.gif) repeat-y left top; }
+.szyw { background: url(../images/index_r52_c25.gif) repeat-y left top; }
+
+/* --------------------------------------------------------------------------
+   9. 四页签切换（旧站 news_div_1..4 + SwapImage()）
+   -------------------------------------------------------------------------- */
+.tabs { margin-top: 12px; }
+.tab-nav { display: flex; align-items: flex-end; }
+.tab-nav button {
+  padding: 0; border: 0; background: none; cursor: pointer; line-height: 0;
+  position: relative; opacity: .8;
+}
+.tab-nav button img { width: auto; height: 23px; }
+.tab-nav button.on { opacity: 1; }
+.tab-nav button.on::after {
+  content: ""; position: absolute; left: 4px; right: 4px; bottom: -3px;
+  height: 3px; background: #1F55A9;
+}
+.tab-more { margin-left: auto; padding-bottom: 4px; color: #1F55A9; }
+
+.tab-panels { border: 6px solid #C3D2E3; height: 250px; padding: 10px; }
+.tab-panel { display: none; }
+.tab-panel.on { display: flex; }
+.tab-panel .tab-figure { width: 250px; }
+.tab-panel .tab-figure .frame { border: 1px solid #dcdcdc; padding: 3px; }
+.tab-panel .tab-figure img { width: 224px; height: 151px; }
+.tab-panel .tab-figure .caption { text-align: center; line-height: 20px; padding-top: 6px; }
+.tab-panel .tab-list { width: 387px; margin-left: 28px; }
+
+/* --------------------------------------------------------------------------
+   10. 右侧栏
+   -------------------------------------------------------------------------- */
+.search-box {
+  width: 251px; height: 30px; margin-left: 4px;
+  background: url(../images/index_r16_c39.gif) no-repeat left top;
+  display: flex; align-items: center; justify-content: flex-end;
+}
+.search-box input[type=text] {
+  width: 150px; height: 20px; line-height: 20px;
+  border: 1px solid #c9d8ea; padding: 0 4px; outline: none;
+  font-family: inherit; font-size: 12px; color: #0967AF;
+}
+.search-box button {
+  width: 41px; height: 20px; margin-left: 12px; margin-right: 7px;
+  border: 0; padding: 0; cursor: pointer;
+  background: url(../images/index_r16_c39btn.gif) no-repeat left top;
+  text-indent: -9999px; overflow: hidden;
+}
+
+.side-links { margin-top: 5px; }
+.side-links img { display: block; margin-bottom: 5px; }
+
+.partner-box { margin-top: 10px; width: 252px; }
+.partner-head { line-height: 0; }
+.partner-body {
+  background: url(../images/fzjg_bg.jpg) repeat-y left top;
+  height: 290px; overflow: hidden; padding-top: 5px;
+}
+.partner-body a { display: block; height: 70px; text-align: center; line-height: 70px; }
+.partner-body img { max-width: 230px; max-height: 60px; }
+.partner-foot { line-height: 0; }
+
+/* --------------------------------------------------------------------------
+   11. 友情链接（旧站是 display:none 的下拉框，这里改为可见的链接块）
+   -------------------------------------------------------------------------- */
+.friendlinks { width: 987px; margin: 14px auto 0; border: 1px solid #cdcdcd; background: #f7f7f7; }
+.friendlinks h2 {
+  height: 30px; line-height: 30px; padding: 0 10px; font-size: 14px; color: #1F55A9;
+  background: url(../images/index_r88_c52.jpg) no-repeat right bottom;
+  border-bottom: 1px solid #cdcdcd;
+}
+.friendlinks dl { display: flex; flex-wrap: wrap; padding: 8px 10px; }
+.friendlinks dt { flex: 0 0 90px; font-weight: bold; color: #0052AD; line-height: 24px; }
+.friendlinks dd { flex: 1; display: flex; flex-wrap: wrap; }
+.friendlinks dd a { width: 20%; line-height: 24px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+
+/* --------------------------------------------------------------------------
+   12. 友情链接条之后的页脚
+   -------------------------------------------------------------------------- */
+.member-strip { width: 987px; margin: 0 auto; }
+.member-strip-head { line-height: 0; }
+.member-strip-body {
+  background: #f7f7f7 url(../images/index_r88_c52.jpg) no-repeat right bottom;
+  border: 1px solid #cdcdcd; border-top: 0;
+  padding: 5px 0;
+}
+.member-links { display: flex; flex-wrap: wrap; width: 92%; margin: 0 auto; }
+.member-links a {
+  width: 20%; line-height: 25px; overflow: hidden;
+  white-space: nowrap; text-overflow: ellipsis; text-align: left;
+}
+
+.footer-bar { height: 6px; background: #D31111; margin-top: 12px; }
+.footer-contact { background: #CADFFE; padding: 12px 0 16px; }
+.footer-contact-inner { width: 90%; margin: 0 auto; display: flex; }
+.footer-col { flex: 1; font-size: 12px; }
+.footer-col p { line-height: 25px; }
+.footer-col a { color: #0052AD; }
+.footer-qr { flex: 0 0 300px; text-align: right; }
+
+/* --------------------------------------------------------------------------
+   13. 内页：面包屑 / 频道页 / 文章页
+   -------------------------------------------------------------------------- */
+.page-banner {
+  height: 60px; line-height: 60px; margin-bottom: 10px;
+  background: linear-gradient(180deg, #eaf2fc 0%, #ffffff 100%);
+  border-bottom: 3px solid #1F55A9;
+}
+.page-banner h1 { font-size: 20px; color: #1F55A9; padding-left: 20px; }
+.page-banner .subtitle { font-size: 12px; color: #666; margin-left: 12px; font-weight: normal; }
+
+.breadcrumb { width: 987px; margin: 0 auto; line-height: 30px; color: #666; }
+.breadcrumb a { color: #1F55A9; }
+.breadcrumb span.sep { margin: 0 6px; color: #bbb; }
+
+.inner-layout { display: flex; width: 987px; margin: 0 auto; padding-bottom: 20px; }
+.inner-main { width: 748px; }
+.inner-side { width: 239px; }
+.inner-side { padding-left: 10px; }
+
+.panel { border: 1px solid #dbe4f0; margin-bottom: 12px; }
+.panel-head {
+  height: 32px; line-height: 32px; padding: 0 12px;
+  background: #eef4fc; border-bottom: 1px solid #dbe4f0;
+  font-size: 14px; font-weight: bold; color: #1F55A9;
+}
+.panel-body { padding: 10px 12px; }
+
+/* 频道页列表 */
+.archive-list li {
+  display: flex; align-items: flex-start;
+  padding: 8px 0; border-bottom: 1px dashed #dcdcdc;
+}
+.archive-list li .thumb { flex: 0 0 120px; margin-right: 12px; }
+.archive-list li .thumb img { width: 120px; height: 80px; object-fit: cover; }
+.archive-list li .meta { flex: 1; }
+.archive-list li .meta h2 { font-size: 14px; line-height: 22px; font-weight: normal; }
+.archive-list li .meta h2 a { color: #1F55A9; }
+.archive-list li .meta h2 a:hover { color: red; }
+.archive-list li .meta .summary { color: #666; line-height: 20px; margin-top: 4px; }
+.archive-list li .meta .info { color: #999; font-size: 11px; margin-top: 4px; }
+.archive-list li .meta .info span { margin-right: 12px; }
+
+/* 分页 */
+.pagination { margin: 18px 0 6px; text-align: center; }
+.pagination a, .pagination span {
+  display: inline-block; min-width: 26px; height: 26px; line-height: 24px;
+  margin: 0 3px; padding: 0 6px; border: 1px solid #dcdcdc; color: #333;
+}
+.pagination a:hover { background: #eef4fc; border-color: #1F55A9; color: #1F55A9; }
+.pagination .active { background: #1F55A9; border-color: #1F55A9; color: #fff; font-weight: bold; }
+.pagination .disabled { color: #ccc; }
+
+/* 文章页 */
+.article-head { padding-bottom: 10px; border-bottom: 1px solid #e5e5e5; }
+.article-head h1 { font-size: 20px; line-height: 32px; color: #074888; text-align: center; font-family: "宋体", sans-serif; }
+.article-meta { text-align: center; color: #999; font-size: 12px; line-height: 26px; }
+.article-meta span { margin: 0 8px; }
+.article-body { font-size: 14px; line-height: 26px; padding: 16px 0; color: #222; }
+.article-body p { margin: 0 0 14px; }
+.article-body img { max-width: 100%; height: auto; }
+.article-body table { border-collapse: collapse; max-width: 100%; }
+.article-body td, .article-body th { border: 1px solid #ccc; padding: 4px 8px; }
+.article-body blockquote {
+  margin: 12px 0; padding: 8px 14px; background: #f7f7f7;
+  border-left: 4px solid #1F55A9; color: #555;
+}
+.article-foot { border-top: 1px solid #e5e5e5; padding-top: 10px; color: #666; line-height: 24px; }
+.article-foot a { color: #1F55A9; }
+.article-nav { display: flex; margin-top: 10px; color: #666; }
+.article-nav .prev, .article-nav .next { flex: 1; }
+.article-nav .next { text-align: right; }
+
+/* 搜索页 */
+.search-form { display: flex; margin-bottom: 14px; }
+.search-form input[type=text] {
+  flex: 1; height: 32px; line-height: 32px; padding: 0 10px;
+  border: 1px solid #c9d8ea; font-size: 14px; font-family: inherit; outline: none;
+}
+.search-form button {
+  width: 90px; height: 32px; border: 0; background: #1F55A9; color: #fff;
+  font-size: 14px; cursor: pointer; font-family: inherit;
+}
+.search-result h3 { font-size: 14px; font-weight: normal; line-height: 22px; }
+.search-result h3 a { color: #1F55A9; }
+.search-result .url { color: #0a8f3c; font-size: 12px; }
+.search-result .excerpt { color: #555; line-height: 20px; }
+.search-result li { padding: 10px 0; border-bottom: 1px dashed #dcdcdc; }
+.search-empty { padding: 30px 0; text-align: center; color: #999; }
+
+/* 会员名录 */
+.directory-group h2 {
+  font-size: 14px; color: #1F55A9; line-height: 30px; margin-top: 12px;
+  border-bottom: 2px solid #dbe4f0;
+}
+.directory-list { display: flex; flex-wrap: wrap; }
+.directory-list li { width: 33.33%; line-height: 28px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+
+/* 空状态 */
+.empty-tip { padding: 40px 0; text-align: center; color: #999; }
+
+/* 旧站遗留的定位块（保留以免旧正文样式错位） */
+.jrq { width: 10px; }
+.picimgs { height: 12px; }

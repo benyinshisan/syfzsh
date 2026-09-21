@@ -1,0 +1,42 @@
+{{- /* 综合要闻（344） + 会员动态（371） 双栏 */ -}}
+{{- $hz := site.Params.home.headlinesSection | default "industry/headlines" -}}
+{{- $hzCount := site.Params.home.headlinesCount | default 10 -}}
+{{- $mb := site.Params.home.membersSection | default "members/dynamics" -}}
+{{- $mbCount := site.Params.home.membersCount | default 10 -}}
+<div class="dual-col">
+
+  {{- /* ---- 综合要闻 ---- */ -}}
+  {{- with site.GetPage $hz -}}
+  <div class="col">
+    <div class="box-head">
+      <img src="{{ "images/index_r36_c4.jpg" | relURL }}" width="344" height="34" usemap="#map-headlines" alt="综合要闻">
+      <map name="map-headlines">
+        <area href="{{ .RelPermalink }}" shape="rect" coords="281,11,331,29" alt="更多">
+      </map>
+    </div>
+    <div class="col-body zjsd" style="height:269px">
+      {{ partial "components/news-list.html" (dict "pages" (first $hzCount .RegularPages.ByDate.Reverse)) }}
+    </div>
+    <img src="{{ "images/index_r52_c4.jpg" | relURL }}" width="344" height="7" alt="">
+  </div>
+  {{- end }}
+
+  <div class="gap jrq"></div>
+
+  {{- /* ---- 会员动态 ---- */ -}}
+  {{- with site.GetPage $mb -}}
+  <div class="col col-wide">
+    <div class="box-head">
+      <img src="{{ "images/index_r36_c25.jpg" | relURL }}" width="371" height="34" usemap="#map-members" alt="会员动态">
+      <map name="map-members">
+        <area href="{{ .RelPermalink }}" shape="rect" coords="311,9,361,31" alt="更多">
+      </map>
+    </div>
+    <div class="col-body szyw" style="height:269px">
+      {{ partial "components/news-list.html" (dict "pages" (first $mbCount .RegularPages.ByDate.Reverse)) }}
+    </div>
+    <img src="{{ "images/index_r52_c25.jpg" | relURL }}" width="371" height="7" alt="">
+  </div>
+  {{- end }}
+
+</div>

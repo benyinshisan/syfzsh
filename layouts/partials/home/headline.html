@@ -1,0 +1,31 @@
+{{- /* 浙商联动态：1 条头条（含摘要）+ N 条列表 */ -}}
+{{- $secPath := site.Params.home.headlineSection | default "news/association" -}}
+{{- $count := site.Params.home.headlineCount | default 8 -}}
+{{- with site.GetPage $secPath -}}
+{{- $sec := . -}}
+{{- $pages := .RegularPages.ByDate.Reverse -}}
+{{- with $pages }}
+{{- $head := index . 0 -}}
+{{- $list := first $count (after 1 .) -}}
+<div class="headline-box">
+  <div class="box-head">
+    <img src="{{ "images/index_r3_c25.jpg" | relURL }}" width="375" height="29" usemap="#map-headline" alt="浙商联动态">
+    <map name="map-headline">
+      <area href="{{ $sec.RelPermalink }}" shape="rect" coords="319,3,369,24" alt="更多">
+    </map>
+  </div>
+  <div style="height:8px"></div>
+
+  <div class="headline-title">
+    <a href="{{ $head.RelPermalink }}" title="{{ $head.Title }}">{{ $head.Title | truncate 40 }}</a>
+  </div>
+  <div class="headline-summary">
+    {{- with $head.Params.summary }}{{ . | plainify | truncate 110 }}{{ else }}{{ $head.Summary | plainify | truncate 110 }}{{ end }}
+    <a class="more" href="{{ $head.RelPermalink }}">[详细]</a>
+  </div>
+  <div class="titleborder"></div>
+
+  {{ partial "components/news-list.html" (dict "pages" $list) }}
+</div>
+{{- end }}
+{{- end }}

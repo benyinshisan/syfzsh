@@ -1,0 +1,24 @@
+{{ define "main" }}
+<div class="inner-layout" style="padding-top:30px">
+  <div class="inner-main">
+    <div class="panel">
+      <div class="panel-head">404 — 页面不存在</div>
+      <div class="panel-body">
+        <p style="font-size:14px;line-height:26px">
+          您访问的页面可能已被移动或删除。<br>
+          请从下方入口继续浏览，或使用站内搜索查找内容。
+        </p>
+        <ul class="news-list" style="margin-top:14px">
+          <li><i class="dot"></i><a href="{{ "/" | relURL }}">返回首页</a></li>
+          <li><i class="dot"></i><a href="{{ "/news/" | relURL }}">浙商联动态</a></li>
+          <li><i class="dot"></i><a href="{{ "/policy/" | relURL }}">政策法规</a></li>
+          <li><i class="dot"></i><a href="{{ "/search/" | relURL }}">站内搜索</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <aside class="inner-side">
+    {{ partial "components/sidebar.html" . }}
+  </aside>
+</div>
+{{ end }}

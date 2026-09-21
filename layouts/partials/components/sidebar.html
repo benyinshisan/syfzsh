@@ -1,0 +1,43 @@
+{{- /*
+  右栏（旧站 index_r16_c39 / link1 / link2 / index_r80_c38 / index_r50_c38 + 协会链接切图）
+  图片位由 hugo.toml 的 [[params.sideLinks]] 配置，"协会链接"取自 data/partners.yaml
+*/ -}}
+{{- $s := site.Params.search -}}
+
+{{- if $s.enable }}
+<form class="search-box" action="{{ $s.action | default "/search/" | relURL }}" method="get" role="search">
+  <label class="sr-only" for="field">站内搜索</label>
+  <input type="text" id="field" name="q" placeholder="{{ $s.placeholder }}" autocomplete="off">
+  <button type="submit" aria-label="搜索">搜索</button>
+</form>
+{{- end }}
+
+<img src="{{ "images/index_r18_c39.jpg" | relURL }}" width="248" height="36" usemap="#map-party"
+     alt="党群建设" style="display:block;margin-top:8px">
+<map name="map-party"><area href="{{ "/news/events/" | relURL }}" shape="rect" coords="186,13,233,31" alt="更多"></map>
+
+<div class="side-links">
+  {{- range site.Params.sideLinks }}
+  <a href="{{ .url | relURL }}" title="{{ .alt }}">
+    <img src="{{ printf "images/%s" .image | relURL }}" width="{{ .width }}" height="{{ .height }}" alt="{{ .alt }}">
+  </a>
+  {{- end }}
+</div>
+
+{{- with site.Data.partners.partners }}
+<div class="partner-box">
+  <div class="partner-head">
+    <img src="{{ "images/index_r50_c38.jpg" | relURL }}" width="252" height="40" alt="协会链接">
+  </div>
+  <div class="partner-body">
+    {{- range . }}
+    <a href="{{ .url }}" target="_blank" rel="noopener" title="{{ .name }}">
+      <img src="{{ .logo | relURL }}" alt="{{ .name }}">
+    </a>
+    {{- end }}
+  </div>
+  <div class="partner-foot">
+    <img src="{{ "images/fzjg_down.jpg" | relURL }}" width="252" height="7" alt="">
+  </div>
+</div>
+{{- end }}

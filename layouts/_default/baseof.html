@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="{{ site.Language.Lang | default "zh" }}">
+<head>
+  {{ partial "head.html" . }}
+</head>
+<body class="{{ if .IsHome }}is-home{{ else }}is-page{{ end }}">
+<div id="wrapper">
+  {{ partial "header.html" . }}
+
+  {{ block "main" . }}{{ end }}
+
+  {{ partial "footer.html" . }}
+</div>
+{{ partial "scripts.html" . }}
+</body>
+</html>

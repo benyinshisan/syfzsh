@@ -1,0 +1,20 @@
+{{- $cur := .RelPermalink -}}
+<nav class="main-nav" aria-label="主导航">
+  <ul id="nav" class="nav clearfix">
+    {{- range site.Menus.main }}
+    {{- if not .Parent }}
+    {{- $on := or (eq .URL $cur) (and (ne .URL "/") (hasPrefix $cur .URL)) }}
+    <li class="nLi{{ if .HasChildren }} has-sub{{ end }}{{ if $on }} on{{ end }}">
+      <h3><a href="{{ .URL | relURL }}">{{ .Name }}</a></h3>
+      {{- with .Children }}
+      <ul class="sub">
+        {{- range . }}
+        <li><a href="{{ .URL | relURL }}">{{ .Name }}</a></li>
+        {{- end }}
+      </ul>
+      {{- end }}
+    </li>
+    {{- end }}
+    {{- end }}
+  </ul>
+</nav>
