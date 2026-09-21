@@ -16,6 +16,9 @@ enableRobotsTXT = true
 summaryLength  = 120
 
 # 输出：首页额外产出 JSON 搜索索引（layouts/index.searchindex.json）
+[caches]
+  [caches.images]
+    dir = ':cacheDir/images'
 [outputs]
   home    = ["HTML", "RSS", "searchindex"]
   section = ["HTML", "RSS"]
