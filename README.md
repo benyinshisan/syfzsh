@@ -19,6 +19,10 @@ hugo server -D          # http://localhost:1313/
 hugo --minify           # 产出到 public/
 ```
 
+> 机器上没有全局 `hugo` 时，用仓库自带的二进制即可：
+> `npm run dev`（等价 `hugo server -D`）、`npm run build`。
+> 脚本 `scripts/hugo.mjs` 优先使用仓库根目录的 `hugo`，找不到再回退 PATH。
+
 发布 `public/` 到任意静态托管（Nginx / OSS / GitHub Pages / Vercel）即可，
 不需要 Node、不需要数据库、不需要后端。
 
@@ -63,6 +67,8 @@ zjsm-hugo/
 ├── hugo.toml                 站点配置 + 全部栏目菜单（9 个一级 / 28 个二级）
 ├── ARCHITECTURE.md           旧站结构解析与逐项映射表
 ├── README.md                 本文件
+├── CMS.md                    内容管理后台（Decap CMS）使用说明
+├── package.json              本地编辑脚本（npm run cms / npm run dev）
 ├── archetypes/default.md     `hugo new` 的文章模板
 ├── scripts/import-legacy.py  从旧站 HTML 重新抽取内容
 │
@@ -74,7 +80,8 @@ zjsm-hugo/
 │
 ├── static/
 │   ├── images/               71 张模板切图（相对 CSS 引用，路径不变）
-│   └── uploads/news|ad/      18 张正文配图与 logo
+│   ├── uploads/news|ad/      18 张正文配图与 logo
+│   └── admin/                Decap CMS 后台页（index.html + config.yml，见 CMS.md）
 │
 ├── data/
 │   ├── members.yaml          202 家会员名录
@@ -126,6 +133,23 @@ summary: "列表页与头条摘要用"
 
 > **目录即栏目**：放进 `content/news/notice/` 就出现在「通知公告」，
 > 放进 `content/party/news/` 就出现在「党建动态」，无需改任何模板。
+
+### 用后台写文章（Decap CMS）
+
+不想手写 front matter，可以用本地内容后台：
+
+```bash
+npm install     # 首次安装依赖
+npm run cms     # 终端 A：启动 decap-server（http://localhost:8081）
+npm run dev     # 终端 B：启动 hugo server（http://localhost:1313）
+```
+
+然后打开 <http://localhost:1313/admin/>，即可增删改 19 个栏目文章、关于页
+以及 `data/` 下的会员名单 / 友情链接 / 协会链接。后台保存的是**本机文件**，
+确认无误后自行 `git commit && git push`。
+
+> 线上 `/admin/` 无法登录（未配置 OAuth 代理），这是有意设计。
+> 完整说明见 **`CMS.md`**。
 
 ### 增删栏目 / 改导航
 

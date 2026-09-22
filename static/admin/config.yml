@@ -1,0 +1,600 @@
+# ============================================================================
+#  浙江省商贸业联合会 — Decap CMS 配置
+#  https://decapcms.org/
+#
+#  本地编辑（本仓库采用的方案）：
+#     npm install          # 首次安装 decap-server
+#     npm run cms          # 终端 A：decap-server（http://localhost:8081）
+#     npm run dev          # 终端 B：hugo server （http://localhost:1313）
+#     浏览器打开 http://localhost:1313/admin/
+#
+#  设计要点见 CMS.md，三处关键约定：
+#   1) 文章集合用 filter 过滤 categories 字段，从而把 Hugo 的 _index.md
+#      （栏目页，没有 categories）挡在列表之外。原理解释见 CMS.md。
+#   2) 每个集合的 categories 都是 hidden 字段并带 default，新建文章会自动
+#      带上正确分类，否则会被 filter 过滤掉而在列表里“消失”。
+#   3) date/lastmod 用 'YYYY-MM-DDTHH:mm:ssZ' 存储，写出的是带 +08:00 偏移
+#      的本地时间（与 `hugo new content` 一致），避免纯日期被 Hugo 当成
+#      UTC 午夜而在构建时按“未来文章”丢弃。
+# ============================================================================
+
+# ---- 本地后端（beta）：由 decap-server 代理读写本机 git 工作区 ----
+local_backend: true
+
+# local_backend 生效时，请求都走本机代理；此处 backend 仅作为占位。
+# 若日后要开放线上编辑，改成 github 后端并配置 OAuth 代理，例如：
+#   backend:
+#     name: github
+#     repo: benyinshisan/zjsm-hugo
+#     branch: main
+#     base_url: https://<你的 OAuth 代理域名>
+backend:
+  name: git-gateway
+  branch: main
+
+# 本地后端不支持编辑工作流，只能用 simple
+publish_mode: simple
+
+site_url: https://www.zjsm.org
+display_url: https://www.zjsm.org
+
+# 非英语界面；index.html 加载的是完整版 decap-cms，已内置全部语言包
+locale: zh_Hans
+
+# 本地后端不产生部署预览，关掉工具条上的预览链接按钮
+show_preview_links: false
+
+# 文件名/媒体名保留中文：Hugo 已开启 hasCJKLanguage，中文 URL 可正常工作。
+# 若要强制 ASCII 文件名，改成 encoding: ascii 即可（中文标题会被丢弃）。
+slug:
+  encoding: unicode
+  clean_accents: false
+  sanitize_replacement: '-'
+
+# 图片上传到 static/uploads，页面里引用 /uploads/...
+media_folder: static/uploads
+public_folder: /uploads
+
+collections:
+  # ==========================================================================
+  #  浙商联动态
+  # ==========================================================================
+  - name: news-notice
+    label: 通知公告
+    label_singular: 通知公告
+    description: 本会发布的各类通知、公告与征求意见稿。
+    folder: content/news/notice
+    create: true
+    slug: '{{year}}-{{month}}-{{day}}-{{slug}}'
+    preview_path: 'news/notice/{{slug}}'
+    filter: {field: categories, value: news}
+    fields:
+      - {label: 标题, name: title, widget: string}
+      - {label: 发布日期, name: date, widget: datetime, format: 'YYYY-MM-DDTHH:mm:ssZ', default: '{{now}}'}
+      - {label: 更新日期, name: lastmod, widget: datetime, format: 'YYYY-MM-DDTHH:mm:ssZ', required: false}
+      - {label: 摘要, name: summary, widget: text, required: false}
+      - {label: 栏目分类, name: categories, widget: hidden, default: [news]}
+      - {label: 标签, name: tags, widget: list, required: false, field: {label: 标签, name: tag, widget: string}}
+      - {label: 来源, name: source, widget: string, required: false}
+      - {label: 缩略图, name: image, widget: image, required: false}
+      - {label: 首页图片新闻, name: featured, widget: boolean, required: false, default: false}
+      - {label: 草稿, name: draft, widget: boolean, default: false}
+      - {label: 正文, name: body, widget: markdown}
+
+  - name: news-association
+    label: 浙商联新闻
+    label_singular: 浙商联新闻
+    description: 浙江省商贸业联合会的新闻与工作动态。
+    folder: content/news/association
+    create: true
+    slug: '{{year}}-{{month}}-{{day}}-{{slug}}'
+    preview_path: 'news/association/{{slug}}'
+    filter: {field: categories, value: news}
+    fields:
+      - {label: 标题, name: title, widget: string}
+      - {label: 发布日期, name: date, widget: datetime, format: 'YYYY-MM-DDTHH:mm:ssZ', default: '{{now}}'}
+      - {label: 更新日期, name: lastmod, widget: datetime, format: 'YYYY-MM-DDTHH:mm:ssZ', required: false}
+      - {label: 摘要, name: summary, widget: text, required: false}
+      - {label: 栏目分类, name: categories, widget: hidden, default: [news]}
+      - {label: 标签, name: tags, widget: list, required: false, field: {label: 标签, name: tag, widget: string}}
+      - {label: 来源, name: source, widget: string, required: false}
+      - {label: 缩略图, name: image, widget: image, required: false}
+      - {label: 首页图片新闻, name: featured, widget: boolean, required: false, default: false}
+      - {label: 草稿, name: draft, widget: boolean, default: false}
+      - {label: 正文, name: body, widget: markdown}
+
+  - name: news-events
+    label: 商联会活动
+    label_singular: 商联会活动
+    description: 论坛、沙龙、考察、培训等商联会活动。
+    folder: content/news/events
+    create: true
+    slug: '{{year}}-{{month}}-{{day}}-{{slug}}'
+    preview_path: 'news/events/{{slug}}'
+    filter: {field: categories, value: news}
+    fields:
+      - {label: 标题, name: title, widget: string}
+      - {label: 发布日期, name: date, widget: datetime, format: 'YYYY-MM-DDTHH:mm:ssZ', default: '{{now}}'}
+      - {label: 更新日期, name: lastmod, widget: datetime, format: 'YYYY-MM-DDTHH:mm:ssZ', required: false}
+      - {label: 摘要, name: summary, widget: text, required: false}
+      - {label: 栏目分类, name: categories, widget: hidden, default: [news]}
+      - {label: 标签, name: tags, widget: list, required: false, field: {label: 标签, name: tag, widget: string}}
+      - {label: 来源, name: source, widget: string, required: false}
+      - {label: 缩略图, name: image, widget: image, required: false}
+      - {label: 首页图片新闻, name: featured, widget: boolean, required: false, default: false}
+      - {label: 草稿, name: draft, widget: boolean, default: false}
+      - {label: 正文, name: body, widget: markdown}
+
+  - name: news-integrity
+    label: 诚信评选
+    label_singular: 诚信评选
+    description: 诚信示范企业评选等诚信建设相关工作。
+    folder: content/news/integrity
+    create: true
+    slug: '{{year}}-{{month}}-{{day}}-{{slug}}'
+    preview_path: 'news/integrity/{{slug}}'
+    filter: {field: categories, value: news}
+    fields:
+      - {label: 标题, name: title, widget: string}
+      - {label: 发布日期, name: date, widget: datetime, format: 'YYYY-MM-DDTHH:mm:ssZ', default: '{{now}}'}
+      - {label: 更新日期, name: lastmod, widget: datetime, format: 'YYYY-MM-DDTHH:mm:ssZ', required: false}
+      - {label: 摘要, name: summary, widget: text, required: false}
+      - {label: 栏目分类, name: categories, widget: hidden, default: [news]}
+      - {label: 标签, name: tags, widget: list, required: false, field: {label: 标签, name: tag, widget: string}}
+      - {label: 来源, name: source, widget: string, required: false}
+      - {label: 缩略图, name: image, widget: image, required: false}
+      - {label: 首页图片新闻, name: featured, widget: boolean, required: false, default: false}
+      - {label: 草稿, name: draft, widget: boolean, default: false}
+      - {label: 正文, name: body, widget: markdown}
+
+  # ==========================================================================
+  #  行业动态
+  # ==========================================================================
+  - name: industry-headlines
+    label: 要闻集锦
+    label_singular: 要闻集锦
+    description: 国家与省市层面的商贸流通要闻。
+    folder: content/industry/headlines
+    create: true
+    slug: '{{year}}-{{month}}-{{day}}-{{slug}}'
+    preview_path: 'industry/headlines/{{slug}}'
+    filter: {field: categories, value: industry}
+    fields:
+      - {label: 标题, name: title, widget: string}
+      - {label: 发布日期, name: date, widget: datetime, format: 'YYYY-MM-DDTHH:mm:ssZ', default: '{{now}}'}
+      - {label: 更新日期, name: lastmod, widget: datetime, format: 'YYYY-MM-DDTHH:mm:ssZ', required: false}
+      - {label: 摘要, name: summary, widget: text, required: false}
+      - {label: 栏目分类, name: categories, widget: hidden, default: [industry]}
+      - {label: 标签, name: tags, widget: list, required: false, field: {label: 标签, name: tag, widget: string}}
+      - {label: 来源, name: source, widget: string, required: false}
+      - {label: 缩略图, name: image, widget: image, required: false}
+      - {label: 首页图片新闻, name: featured, widget: boolean, required: false, default: false}
+      - {label: 草稿, name: draft, widget: boolean, default: false}
+      - {label: 正文, name: body, widget: markdown}
+
+  - name: industry-experts
+    label: 专家视点
+    label_singular: 专家视点
+    description: 专家学者对商贸流通领域的观察与解读。
+    folder: content/industry/experts
+    create: true
+    slug: '{{year}}-{{month}}-{{day}}-{{slug}}'
+    preview_path: 'industry/experts/{{slug}}'
+    filter: {field: categories, value: industry}
+    fields:
+      - {label: 标题, name: title, widget: string}
+      - {label: 发布日期, name: date, widget: datetime, format: 'YYYY-MM-DDTHH:mm:ssZ', default: '{{now}}'}
+      - {label: 更新日期, name: lastmod, widget: datetime, format: 'YYYY-MM-DDTHH:mm:ssZ', required: false}
+      - {label: 摘要, name: summary, widget: text, required: false}
+      - {label: 栏目分类, name: categories, widget: hidden, default: [industry]}
+      - {label: 标签, name: tags, widget: list, required: false, field: {label: 标签, name: tag, widget: string}}
+      - {label: 来源, name: source, widget: string, required: false}
+      - {label: 缩略图, name: image, widget: image, required: false}
+      - {label: 首页图片新闻, name: featured, widget: boolean, required: false, default: false}
+      - {label: 草稿, name: draft, widget: boolean, default: false}
+      - {label: 正文, name: body, widget: markdown}
+
+  - name: industry-livelihood
+    label: 民生热点
+    label_singular: 民生热点
+    description: 与居民消费、生活服务相关的热点话题。
+    folder: content/industry/livelihood
+    create: true
+    slug: '{{year}}-{{month}}-{{day}}-{{slug}}'
+    preview_path: 'industry/livelihood/{{slug}}'
+    filter: {field: categories, value: industry}
+    fields:
+      - {label: 标题, name: title, widget: string}
+      - {label: 发布日期, name: date, widget: datetime, format: 'YYYY-MM-DDTHH:mm:ssZ', default: '{{now}}'}
+      - {label: 更新日期, name: lastmod, widget: datetime, format: 'YYYY-MM-DDTHH:mm:ssZ', required: false}
+      - {label: 摘要, name: summary, widget: text, required: false}
+      - {label: 栏目分类, name: categories, widget: hidden, default: [industry]}
+      - {label: 标签, name: tags, widget: list, required: false, field: {label: 标签, name: tag, widget: string}}
+      - {label: 来源, name: source, widget: string, required: false}
+      - {label: 缩略图, name: image, widget: image, required: false}
+      - {label: 首页图片新闻, name: featured, widget: boolean, required: false, default: false}
+      - {label: 草稿, name: draft, widget: boolean, default: false}
+      - {label: 正文, name: body, widget: markdown}
+
+  # ==========================================================================
+  #  政策法规
+  # ==========================================================================
+  - name: policy-national
+    label: 国家政策
+    label_singular: 国家政策
+    description: 国家层面的商贸流通相关政策。
+    folder: content/policy/national
+    create: true
+    slug: '{{year}}-{{month}}-{{day}}-{{slug}}'
+    preview_path: 'policy/national/{{slug}}'
+    filter: {field: categories, value: policy}
+    fields:
+      - {label: 标题, name: title, widget: string}
+      - {label: 发布日期, name: date, widget: datetime, format: 'YYYY-MM-DDTHH:mm:ssZ', default: '{{now}}'}
+      - {label: 更新日期, name: lastmod, widget: datetime, format: 'YYYY-MM-DDTHH:mm:ssZ', required: false}
+      - {label: 摘要, name: summary, widget: text, required: false}
+      - {label: 栏目分类, name: categories, widget: hidden, default: [policy]}
+      - {label: 标签, name: tags, widget: list, required: false, field: {label: 标签, name: tag, widget: string}}
+      - {label: 来源, name: source, widget: string, required: false}
+      - {label: 缩略图, name: image, widget: image, required: false}
+      - {label: 首页图片新闻, name: featured, widget: boolean, required: false, default: false}
+      - {label: 草稿, name: draft, widget: boolean, default: false}
+      - {label: 正文, name: body, widget: markdown}
+
+  - name: policy-provincial
+    label: 省内政策
+    label_singular: 省内政策
+    description: 浙江省出台的商贸流通相关政策。
+    folder: content/policy/provincial
+    create: true
+    slug: '{{year}}-{{month}}-{{day}}-{{slug}}'
+    preview_path: 'policy/provincial/{{slug}}'
+    filter: {field: categories, value: policy}
+    fields:
+      - {label: 标题, name: title, widget: string}
+      - {label: 发布日期, name: date, widget: datetime, format: 'YYYY-MM-DDTHH:mm:ssZ', default: '{{now}}'}
+      - {label: 更新日期, name: lastmod, widget: datetime, format: 'YYYY-MM-DDTHH:mm:ssZ', required: false}
+      - {label: 摘要, name: summary, widget: text, required: false}
+      - {label: 栏目分类, name: categories, widget: hidden, default: [policy]}
+      - {label: 标签, name: tags, widget: list, required: false, field: {label: 标签, name: tag, widget: string}}
+      - {label: 来源, name: source, widget: string, required: false}
+      - {label: 缩略图, name: image, widget: image, required: false}
+      - {label: 首页图片新闻, name: featured, widget: boolean, required: false, default: false}
+      - {label: 草稿, name: draft, widget: boolean, default: false}
+      - {label: 正文, name: body, widget: markdown}
+
+  - name: policy-documents
+    label: 政策文件
+    label_singular: 政策文件
+    description: 政策文件原文与解读。
+    folder: content/policy/documents
+    create: true
+    slug: '{{year}}-{{month}}-{{day}}-{{slug}}'
+    preview_path: 'policy/documents/{{slug}}'
+    filter: {field: categories, value: policy}
+    fields:
+      - {label: 标题, name: title, widget: string}
+      - {label: 发布日期, name: date, widget: datetime, format: 'YYYY-MM-DDTHH:mm:ssZ', default: '{{now}}'}
+      - {label: 更新日期, name: lastmod, widget: datetime, format: 'YYYY-MM-DDTHH:mm:ssZ', required: false}
+      - {label: 摘要, name: summary, widget: text, required: false}
+      - {label: 栏目分类, name: categories, widget: hidden, default: [policy]}
+      - {label: 标签, name: tags, widget: list, required: false, field: {label: 标签, name: tag, widget: string}}
+      - {label: 来源, name: source, widget: string, required: false}
+      - {label: 缩略图, name: image, widget: image, required: false}
+      - {label: 首页图片新闻, name: featured, widget: boolean, required: false, default: false}
+      - {label: 草稿, name: draft, widget: boolean, default: false}
+      - {label: 正文, name: body, widget: markdown}
+
+  # ==========================================================================
+  #  会员天地
+  # ==========================================================================
+  - name: members-dynamics
+    label: 会员动态
+    label_singular: 会员动态
+    description: 会员单位的最新动态。
+    folder: content/members/dynamics
+    create: true
+    slug: '{{year}}-{{month}}-{{day}}-{{slug}}'
+    preview_path: 'members/dynamics/{{slug}}'
+    filter: {field: categories, value: members}
+    fields:
+      - {label: 标题, name: title, widget: string}
+      - {label: 发布日期, name: date, widget: datetime, format: 'YYYY-MM-DDTHH:mm:ssZ', default: '{{now}}'}
+      - {label: 更新日期, name: lastmod, widget: datetime, format: 'YYYY-MM-DDTHH:mm:ssZ', required: false}
+      - {label: 摘要, name: summary, widget: text, required: false}
+      - {label: 栏目分类, name: categories, widget: hidden, default: [members]}
+      - {label: 标签, name: tags, widget: list, required: false, field: {label: 标签, name: tag, widget: string}}
+      - {label: 来源, name: source, widget: string, required: false}
+      - {label: 缩略图, name: image, widget: image, required: false}
+      - {label: 首页图片新闻, name: featured, widget: boolean, required: false, default: false}
+      - {label: 草稿, name: draft, widget: boolean, default: false}
+      - {label: 正文, name: body, widget: markdown}
+
+  # ==========================================================================
+  #  党群建设
+  # ==========================================================================
+  - name: party-news
+    label: 党建动态
+    label_singular: 党建动态
+    description: 行业党委、联合支部的党建工作动态。
+    folder: content/party/news
+    create: true
+    slug: '{{year}}-{{month}}-{{day}}-{{slug}}'
+    preview_path: 'party/news/{{slug}}'
+    filter: {field: categories, value: party}
+    fields:
+      - {label: 标题, name: title, widget: string}
+      - {label: 发布日期, name: date, widget: datetime, format: 'YYYY-MM-DDTHH:mm:ssZ', default: '{{now}}'}
+      - {label: 更新日期, name: lastmod, widget: datetime, format: 'YYYY-MM-DDTHH:mm:ssZ', required: false}
+      - {label: 摘要, name: summary, widget: text, required: false}
+      - {label: 栏目分类, name: categories, widget: hidden, default: [party]}
+      - {label: 标签, name: tags, widget: list, required: false, field: {label: 标签, name: tag, widget: string}}
+      - {label: 来源, name: source, widget: string, required: false}
+      - {label: 缩略图, name: image, widget: image, required: false}
+      - {label: 首页图片新闻, name: featured, widget: boolean, required: false, default: false}
+      - {label: 草稿, name: draft, widget: boolean, default: false}
+      - {label: 正文, name: body, widget: markdown}
+
+  - name: party-activities
+    label: 党建活动
+    label_singular: 党建活动
+    description: 党建主题活动、学习教育与主题党日。
+    folder: content/party/activities
+    create: true
+    slug: '{{year}}-{{month}}-{{day}}-{{slug}}'
+    preview_path: 'party/activities/{{slug}}'
+    filter: {field: categories, value: party}
+    fields:
+      - {label: 标题, name: title, widget: string}
+      - {label: 发布日期, name: date, widget: datetime, format: 'YYYY-MM-DDTHH:mm:ssZ', default: '{{now}}'}
+      - {label: 更新日期, name: lastmod, widget: datetime, format: 'YYYY-MM-DDTHH:mm:ssZ', required: false}
+      - {label: 摘要, name: summary, widget: text, required: false}
+      - {label: 栏目分类, name: categories, widget: hidden, default: [party]}
+      - {label: 标签, name: tags, widget: list, required: false, field: {label: 标签, name: tag, widget: string}}
+      - {label: 来源, name: source, widget: string, required: false}
+      - {label: 缩略图, name: image, widget: image, required: false}
+      - {label: 首页图片新闻, name: featured, widget: boolean, required: false, default: false}
+      - {label: 草稿, name: draft, widget: boolean, default: false}
+      - {label: 正文, name: body, widget: markdown}
+
+  - name: party-integrity
+    label: 清廉园地
+    label_singular: 清廉园地
+    description: 清廉社会组织建设相关内容。
+    folder: content/party/integrity
+    create: true
+    slug: '{{year}}-{{month}}-{{day}}-{{slug}}'
+    preview_path: 'party/integrity/{{slug}}'
+    filter: {field: categories, value: party}
+    fields:
+      - {label: 标题, name: title, widget: string}
+      - {label: 发布日期, name: date, widget: datetime, format: 'YYYY-MM-DDTHH:mm:ssZ', default: '{{now}}'}
+      - {label: 更新日期, name: lastmod, widget: datetime, format: 'YYYY-MM-DDTHH:mm:ssZ', required: false}
+      - {label: 摘要, name: summary, widget: text, required: false}
+      - {label: 栏目分类, name: categories, widget: hidden, default: [party]}
+      - {label: 标签, name: tags, widget: list, required: false, field: {label: 标签, name: tag, widget: string}}
+      - {label: 来源, name: source, widget: string, required: false}
+      - {label: 缩略图, name: image, widget: image, required: false}
+      - {label: 首页图片新闻, name: featured, widget: boolean, required: false, default: false}
+      - {label: 草稿, name: draft, widget: boolean, default: false}
+      - {label: 正文, name: body, widget: markdown}
+
+  # ==========================================================================
+  #  标准化工作
+  # ==========================================================================
+  - name: standards-news
+    label: 标准化动态
+    label_singular: 标准化动态
+    description: 团体标准立项、征求意见与发布动态。
+    folder: content/standards/news
+    create: true
+    slug: '{{year}}-{{month}}-{{day}}-{{slug}}'
+    preview_path: 'standards/news/{{slug}}'
+    filter: {field: categories, value: standards}
+    fields:
+      - {label: 标题, name: title, widget: string}
+      - {label: 发布日期, name: date, widget: datetime, format: 'YYYY-MM-DDTHH:mm:ssZ', default: '{{now}}'}
+      - {label: 更新日期, name: lastmod, widget: datetime, format: 'YYYY-MM-DDTHH:mm:ssZ', required: false}
+      - {label: 摘要, name: summary, widget: text, required: false}
+      - {label: 栏目分类, name: categories, widget: hidden, default: [standards]}
+      - {label: 标签, name: tags, widget: list, required: false, field: {label: 标签, name: tag, widget: string}}
+      - {label: 来源, name: source, widget: string, required: false}
+      - {label: 缩略图, name: image, widget: image, required: false}
+      - {label: 首页图片新闻, name: featured, widget: boolean, required: false, default: false}
+      - {label: 草稿, name: draft, widget: boolean, default: false}
+      - {label: 正文, name: body, widget: markdown}
+
+  - name: standards-downloads
+    label: 标准下载
+    label_singular: 标准下载
+    description: 团体标准文本与相关附件的下载入口。
+    folder: content/standards/downloads
+    create: true
+    slug: '{{year}}-{{month}}-{{day}}-{{slug}}'
+    preview_path: 'standards/downloads/{{slug}}'
+    filter: {field: categories, value: standards}
+    fields:
+      - {label: 标题, name: title, widget: string}
+      - {label: 发布日期, name: date, widget: datetime, format: 'YYYY-MM-DDTHH:mm:ssZ', default: '{{now}}'}
+      - {label: 更新日期, name: lastmod, widget: datetime, format: 'YYYY-MM-DDTHH:mm:ssZ', required: false}
+      - {label: 摘要, name: summary, widget: text, required: false}
+      - {label: 栏目分类, name: categories, widget: hidden, default: [standards]}
+      - {label: 标签, name: tags, widget: list, required: false, field: {label: 标签, name: tag, widget: string}}
+      - {label: 来源, name: source, widget: string, required: false}
+      - {label: 缩略图, name: image, widget: image, required: false}
+      - {label: 首页图片新闻, name: featured, widget: boolean, required: false, default: false}
+      - {label: 草稿, name: draft, widget: boolean, default: false}
+      - {label: 正文, name: body, widget: markdown}
+
+  - name: standards-policy
+    label: 标准化政策法规
+    label_singular: 标准化政策法规
+    description: 标准化相关的法律法规与政策文件。
+    folder: content/standards/policy
+    create: true
+    slug: '{{year}}-{{month}}-{{day}}-{{slug}}'
+    preview_path: 'standards/policy/{{slug}}'
+    filter: {field: categories, value: standards}
+    fields:
+      - {label: 标题, name: title, widget: string}
+      - {label: 发布日期, name: date, widget: datetime, format: 'YYYY-MM-DDTHH:mm:ssZ', default: '{{now}}'}
+      - {label: 更新日期, name: lastmod, widget: datetime, format: 'YYYY-MM-DDTHH:mm:ssZ', required: false}
+      - {label: 摘要, name: summary, widget: text, required: false}
+      - {label: 栏目分类, name: categories, widget: hidden, default: [standards]}
+      - {label: 标签, name: tags, widget: list, required: false, field: {label: 标签, name: tag, widget: string}}
+      - {label: 来源, name: source, widget: string, required: false}
+      - {label: 缩略图, name: image, widget: image, required: false}
+      - {label: 首页图片新闻, name: featured, widget: boolean, required: false, default: false}
+      - {label: 草稿, name: draft, widget: boolean, default: false}
+      - {label: 正文, name: body, widget: markdown}
+
+  # ==========================================================================
+  #  服务中心
+  # ==========================================================================
+  - name: services-investment
+    label: 投资服务
+    label_singular: 投资服务
+    description: 招商引资项目与投资服务信息。
+    folder: content/services/investment
+    create: true
+    slug: '{{year}}-{{month}}-{{day}}-{{slug}}'
+    preview_path: 'services/investment/{{slug}}'
+    filter: {field: categories, value: services}
+    fields:
+      - {label: 标题, name: title, widget: string}
+      - {label: 发布日期, name: date, widget: datetime, format: 'YYYY-MM-DDTHH:mm:ssZ', default: '{{now}}'}
+      - {label: 更新日期, name: lastmod, widget: datetime, format: 'YYYY-MM-DDTHH:mm:ssZ', required: false}
+      - {label: 摘要, name: summary, widget: text, required: false}
+      - {label: 栏目分类, name: categories, widget: hidden, default: [services]}
+      - {label: 标签, name: tags, widget: list, required: false, field: {label: 标签, name: tag, widget: string}}
+      - {label: 来源, name: source, widget: string, required: false}
+      - {label: 缩略图, name: image, widget: image, required: false}
+      - {label: 首页图片新闻, name: featured, widget: boolean, required: false, default: false}
+      - {label: 草稿, name: draft, widget: boolean, default: false}
+      - {label: 正文, name: body, widget: markdown}
+
+  - name: services-trade
+    label: 浙江商贸
+    label_singular: 浙江商贸
+    description: 浙江商贸领域的信息与商联会期刊。
+    folder: content/services/trade
+    create: true
+    slug: '{{year}}-{{month}}-{{day}}-{{slug}}'
+    preview_path: 'services/trade/{{slug}}'
+    filter: {field: categories, value: services}
+    fields:
+      - {label: 标题, name: title, widget: string}
+      - {label: 发布日期, name: date, widget: datetime, format: 'YYYY-MM-DDTHH:mm:ssZ', default: '{{now}}'}
+      - {label: 更新日期, name: lastmod, widget: datetime, format: 'YYYY-MM-DDTHH:mm:ssZ', required: false}
+      - {label: 摘要, name: summary, widget: text, required: false}
+      - {label: 栏目分类, name: categories, widget: hidden, default: [services]}
+      - {label: 标签, name: tags, widget: list, required: false, field: {label: 标签, name: tag, widget: string}}
+      - {label: 来源, name: source, widget: string, required: false}
+      - {label: 缩略图, name: image, widget: image, required: false}
+      - {label: 首页图片新闻, name: featured, widget: boolean, required: false, default: false}
+      - {label: 草稿, name: draft, widget: boolean, default: false}
+      - {label: 正文, name: body, widget: markdown}
+
+  # ==========================================================================
+  #  关于浙商联（固定页面）
+  # ==========================================================================
+  - name: about
+    label: 关于浙商联
+    description: 本会概况、章程、组织机构、入会指南与联系方式。栏目页（_index.md）不在 CMS 中维护。
+    files:
+      - name: overview
+        label: 概 况
+        file: content/about/overview.md
+        fields: &about_fields
+          - {label: 标题, name: title, widget: string}
+          - {label: 导航短标题, name: linkTitle, widget: string, required: false}
+          - {label: 排序权重, name: weight, widget: number, value_type: int, required: false, hint: 数字越小越靠前}
+          - {label: 描述, name: description, widget: text, required: false}
+          - {label: 正文, name: body, widget: markdown}
+      - name: charter
+        label: 章 程
+        file: content/about/charter.md
+        fields: *about_fields
+      - name: organization
+        label: 组织机构
+        file: content/about/organization.md
+        fields: *about_fields
+      - name: join
+        label: 入会指南
+        file: content/about/join.md
+        fields: *about_fields
+      - name: contact
+        label: 联系我们
+        file: content/about/contact.md
+        fields: *about_fields
+
+  # ==========================================================================
+  #  数据文件（data/*.yaml）
+  #  注意：Decap 会重新序列化整个 YAML 文件，文件顶部的说明性注释会丢失。
+  # ==========================================================================
+  - name: data-members
+    label: 数据 · 会员名单
+    description: 对应 data/members.yaml，首页“会员名录”滚动条的数据来源。
+    files:
+      - name: members
+        label: 会员单位名单
+        file: data/members.yaml
+        fields:
+          - label: 会员单位 / 个人
+            name: members
+            widget: list
+            required: false
+            hint: 每行一个名称，顺序即首页滚动顺序。
+            field: {label: 名称, name: item, widget: string}
+
+  - name: data-friendlinks
+    label: 数据 · 友情链接
+    description: 对应 data/friendlinks.yaml，首页底部“友情链接”的数据来源。
+    files:
+      - name: friendlinks
+        label: 友情链接
+        file: data/friendlinks.yaml
+        # 这里的字段名必须与 data/friendlinks.yaml 的顶层键完全一致，
+        # 模板 layouts/partials/home/friendlinks.html 直接把这些键当作分组标题渲染。
+        fields:
+          - label: 协会站点
+            name: 协会站点
+            widget: list
+            required: false
+            field: {label: 链接, name: item, widget: object, fields: [{label: 名称, name: name, widget: string}, {label: 网址, name: url, widget: string}]}
+          - label: 企业站点
+            name: 企业站点
+            widget: list
+            required: false
+            field: {label: 链接, name: item, widget: object, fields: [{label: 名称, name: name, widget: string}, {label: 网址, name: url, widget: string}]}
+          - label: 政府站点
+            name: 政府站点
+            widget: list
+            required: false
+            field: {label: 链接, name: item, widget: object, fields: [{label: 名称, name: name, widget: string}, {label: 网址, name: url, widget: string}]}
+          - label: 智囊站点
+            name: 智囊站点
+            widget: list
+            required: false
+            field: {label: 链接, name: item, widget: object, fields: [{label: 名称, name: name, widget: string}, {label: 网址, name: url, widget: string}]}
+
+  - name: data-partners
+    label: 数据 · 协会链接
+    description: 对应 data/partners.yaml，首页右栏“协会链接”图片位的数据来源。
+    files:
+      - name: partners
+        label: 协会 / 会员单位
+        file: data/partners.yaml
+        fields:
+          - label: 单位列表
+            name: partners
+            widget: list
+            required: false
+            field:
+              label: 单位
+              name: item
+              widget: object
+              fields:
+                - {label: 名称, name: name, widget: string}
+                - {label: 标志图片, name: logo, widget: image, required: false}
+                - {label: 网址, name: url, widget: string, required: false}

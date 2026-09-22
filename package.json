@@ -1,0 +1,15 @@
+{
+  "name": "zjsm-hugo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "浙江省商贸业联合会 Hugo 站点 — 含 Decap CMS 本地内容管理",
+  "scripts": {
+    "dev": "node scripts/hugo.mjs server -D",
+    "hugo": "node scripts/hugo.mjs",
+    "build": "node scripts/hugo.mjs --gc --minify",
+    "cms": "decap-server"
+  },
+  "devDependencies": {
+    "decap-server": "^3.11.3"
+  }
+}

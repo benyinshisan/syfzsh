@@ -3,6 +3,12 @@ public/
 resources/_gen/
 .hugo_build.lock
 
+# Node（Decap CMS 本地编辑，见 CMS.md）
+node_modules/
+# 刻意不提交 lockfile：CI 只在存在 package-lock.json 时才装 Node 依赖并 npm ci，
+# 而本站构建是纯 Hugo，用不到它们。锁定文件留在本地即可。
+package-lock.json
+
 # 编辑器
 .vscode/
 .idea/

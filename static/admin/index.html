@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- CMS 后台不应被搜索引擎收录 -->
+    <meta name="robots" content="noindex, nofollow" />
+    <title>内容管理 · 浙江省商贸业联合会</title>
+  </head>
+  <body>
+    <div id="cms-fallback"></div>
+
+    <script>
+      /*
+       * 本仓库采用「仅本地编辑」的 Decap CMS 方案，见根目录 CMS.md：
+       *   npm run cms   # 启动 decap-server（http://localhost:8081）
+       *   npm run dev   # 启动 hugo server（http://localhost:1313）
+       * 然后访问 http://localhost:1313/admin/
+       *
+       * decap-server 出于安全只接受 localhost / 127.0.0.1 来源，因此线上
+       * /admin/ 无法登录。这里在非本地域名下不加载 CMS，直接给出中文提示，
+       * 避免编辑者看到一个无法使用的登录页。
+       *
+       * 如果以后要开放线上编辑（GitHub 后端 + OAuth 代理等），把下面这段
+       * 守卫删掉即可，同时记得修改 config.yml 的 backend。
+       */
+      (function () {
+        var host = window.location.hostname;
+        var isLocal =
+          host === 'localhost' ||
+          host === '127.0.0.1' ||
+          host === '::1' ||
+          host === '[::1]';
+
+        if (!isLocal) {
+          document.getElementById('cms-fallback').innerHTML =
+            '<div style="max-width:640px;margin:80px auto;padding:24px 28px;' +
+            'font:16px/1.8 -apple-system,BlinkMacSystemFont,\'Segoe UI\',\'PingFang SC\',\'Microsoft YaHei\',sans-serif;' +
+            'color:#333;background:#fafafa;border:1px solid #e5e5e5;border-radius:8px">' +
+            '<h1 style="font-size:20px;margin:0 0 12px">内容管理后台仅在本地使用</h1>' +
+            '<p style="margin:0 0 12px">本站使用 Decap CMS 的本地编辑模式（decap-server），' +
+            '出于安全考虑只允许从 <code>localhost</code> 访问，线上站点无法登录。</p>' +
+            '<p style="margin:0 0 8px"><strong>本地使用步骤：</strong></p>' +
+            '<ol style="margin:0;padding-left:22px">' +
+            '<li>在仓库根目录执行 <code>npm install</code>（首次）</li>' +
+            '<li>执行 <code>npm run cms</code> 启动 decap-server</li>' +
+            '<li>另开终端执行 <code>npm run dev</code> 启动 Hugo</li>' +
+            '<li>浏览器打开 <code>http://localhost:1313/admin/</code></li>' +
+            '</ol>' +
+            '<p style="margin:16px 0 0;color:#666;font-size:14px">' +
+            '详见仓库根目录的 <code>CMS.md</code>。</p>' +
+            '</div>';
+          return;
+        }
+
+        var script = document.createElement('script');
+        script.src =
+          'https://cdn.jsdelivr.net/npm/decap-cms@^3.0.0/dist/decap-cms.js';
+        // CMS 就绪后再加载自定义预览：它依赖 window.CMS / window.h / window.createClass
+        script.onload = function () {
+          var preview = document.createElement('script');
+          preview.src = 'preview.js';
+          document.body.appendChild(preview);
+        };
+        document.body.appendChild(script);
+      })();
+    </script>
+  </body>
+</html>
