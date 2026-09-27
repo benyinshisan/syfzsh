@@ -1,9 +1,16 @@
-{{- /* 站点配置，供 theme.js 读取 */ -}}
+{{- /* 站点配置，供 theme.js 读取。
+    ⚠ 每个值都要跟 safeJS，别删 —— 删了站内搜索就坏（线上曾一直是坏的）。
+    原因：Go 的 html/template 把 <script> 里的内容按 JavaScript 上下文转义，
+    **不看 type 属性**。而 jsonify 输出的已经是 JSON 文本（自带引号），
+    再被 JS 上下文转义一遍就成了 "\"/syfzsh/searchindex.json\"" ——
+    字符串里带着字面引号，fetch() 把它当地址解析不了，直接走 catch，
+    页面永远显示「索引加载失败」。
+    safeJS = 声明「这已经是我要的 JS 文本，别再转义」。 */ -}}
 <script id="site-config" type="application/json">
 {
-  "baseURL": {{ site.BaseURL | jsonify }},
-  "searchIndex": {{ "searchindex.json" | relURL | jsonify }},
-  "lang": {{ site.Language.Lang | jsonify }}
+  "baseURL": {{ site.BaseURL | jsonify | safeJS }},
+  "searchIndex": {{ "searchindex.json" | relURL | jsonify | safeJS }},
+  "lang": {{ site.Language.Lang | jsonify | safeJS }}
 }
 </script>
 

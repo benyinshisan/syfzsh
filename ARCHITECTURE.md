@@ -39,7 +39,7 @@ data/*.yaml ──→ partials/footer.html / home/friendlinks.html / components/
 | `partials/header.html` | 顶部工具条 + 站名横幅 |
 | `partials/nav.html` | 主导航（含移动端汉堡按钮） |
 | `partials/footer.html` | 会员名录滚动（**首页不输出**，首页已有 LOGO 墙）+ 页脚联系信息 |
-| `partials/scripts.html` | `#site-config` JSON + theme.js。**结构不要动** —— 它是 JS 读配置的唯一来源 |
+| `partials/scripts.html` | `#site-config` JSON + theme.js。**结构不要动** —— 它是 JS 读配置的唯一来源。里面每个值都跟了 `safeJS`，**别当多余删掉**：`<script>` 里的内容会被 Go 的 html/template 按 JavaScript 上下文再转义一次（不看 `type`），`jsonify` 的结果会被套上第二层引号，值里带上字面引号 → `fetch()` 解析不了 → 搜索页永远「索引加载失败」 |
 
 ### 组件（跨页面复用）
 
