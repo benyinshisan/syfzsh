@@ -19,9 +19,12 @@
  *   npm run members:order -- --dry-run # 只打印会改什么，不落盘
  *
  * ⚠ 只动 data/members_order.yaml，不碰任何会员内容页。
- * ⚠ 「补到末尾」用的顺序是「排序权重 → 日期 → 简称」，与没有名单时前台的表现
- *   一致 —— 也就是说这个脚本**不会改变**任何会员当前的可见位置，只是把当前
- *   的位置固化进名单，好让你接着拖。
+ * ⚠ 「补到末尾」用的顺序必须与「没有名单时前台的表现」一致，否则跑一次脚本就会
+ *   把会员的位置换掉。前台那份顺序由 Hugo 的默认页面排序决定（member-pages.html
+ *   把名单之外的会员直接接在后面，不再自己排），Hugo 0.166 实测为：
+ *       有权重的按权重升序 → 没写权重的排在有权重的之后 → 日期新的在前 → 简称升序
+ *   （实测方式：临时建 5 个内容页，权重/日期/简称各造一组并列，看版块页输出。
+ *    注意「没写 weight 的排最后」这一条 —— 与「weight 不写就是 0 排最前」相反。）
  */
 import { readFileSync, writeFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -35,31 +38,41 @@ const dryRun = process.argv.slice(2).includes('--dry-run');
 
 /* ---------- 1. 现有哪些会员 ---------- */
 
-/** 取 front matter 里 slug 的值；没有就退回文件名（与 Hugo 的行为一致） */
-function slugOf(file) {
+/** 确定性字符串比较。不用 localeCompare：它的结果随运行机器的 locale 变，
+    同一份内容在两台电脑上可能排出不同顺序，而这份名单是要进 git 的。 */
+function cmp(a, b) { return a < b ? -1 : a > b ? 1 : 0; }
+
+/** 一次读出本脚本需要的四个字段（原先每个字段各读一遍文件） */
+function metaOf(file) {
   const text = readFileSync(path.join(membersDir, file), 'utf8');
   const fm = text.split(/^---\s*$/m)[1] || '';
-  const m = fm.match(/^slug:\s*(.+?)\s*$/m);
-  if (m) return m[1].replace(/^["']|["']$/g, '');
-  return file.replace(/\.md$/, '');
+  const pick = (key) => {
+    const m = fm.match(new RegExp(`^${key}:\\s*(.+?)\\s*$`, 'm'));
+    return m ? m[1].replace(/^["']|["']$/g, '') : '';
+  };
+  const rawWeight = pick('weight');
+  const time = Date.parse(pick('date'));
+  return {
+    file,
+    slug: pick('slug') || file.replace(/\.md$/, ''),   // 与 Hugo 一致：没有 slug 就退回文件名
+    weight: rawWeight === '' ? Number.POSITIVE_INFINITY : Number(rawWeight),
+    time: Number.isNaN(time) ? 0 : time,               // 没写日期 = 最旧，在「新的在前」里排最后
+    linkTitle: pick('linkTitle') || pick('title') || file.replace(/\.md$/, ''),
+  };
 }
 
-/** 取用于排序的 weight；没有 weight 的排在最后（Hugo 的实际行为，不是 0 排最前） */
-function weightOf(file) {
-  const text = readFileSync(path.join(membersDir, file), 'utf8');
-  const fm = text.split(/^---\s*$/m)[1] || '';
-  const m = fm.match(/^weight:\s*(-?\d+)\s*$/m);
-  return m ? Number(m[1]) : Number.POSITIVE_INFINITY;
-}
-
-const files = readdirSync(membersDir)
+const metas = readdirSync(membersDir)
   .filter((f) => f.endsWith('.md') && f !== '_index.md')
+  .map(metaOf)
   .sort((a, b) => {
-    const d = weightOf(a) - weightOf(b);
-    return d !== 0 ? d : a.localeCompare(b);
+    if (a.weight !== b.weight) return a.weight - b.weight;
+    if (a.time !== b.time) return b.time - a.time;
+    const byTitle = cmp(a.linkTitle, b.linkTitle);
+    return byTitle !== 0 ? byTitle : cmp(a.file, b.file);
   });
 
-const slugToFile = new Map(files.map((f) => [slugOf(f), f]));
+const files = metas.map((m) => m.file);
+const slugToFile = new Map(metas.map((m) => [m.slug, m.file]));
 const existing = new Set(slugToFile.keys());
 
 /* ---------- 2. 名单里现在写了什么 ---------- */
@@ -76,7 +89,7 @@ for (const line of current.split(/\r?\n/)) {
 
 const kept = listed.filter((s) => existing.has(s));
 const dropped = listed.filter((s) => !existing.has(s));
-const added = files.map(slugOf).filter((s) => !listed.includes(s));
+const added = metas.map((m) => m.slug).filter((s) => !listed.includes(s));
 const seen = new Set();
 const final = [];
 for (const s of [...kept, ...added]) {
