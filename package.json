@@ -4,7 +4,7 @@
   "private": true,
   "description": "协会 / 商会站点 Hugo 模板 — 响应式现代版式 + Decap CMS 本地内容管理",
   "scripts": {
-    "dev": "node scripts/hugo.mjs server -D",
+    "dev": "node scripts/hugo.mjs server -D --baseURL http://localhost:1313/",
     "hugo": "node scripts/hugo.mjs",
     "build": "node scripts/hugo.mjs --gc --minify",
     "build:local": "node scripts/hugo.mjs --config hugo.toml,hugo.local.toml --destination public-local --cleanDestinationDir && node scripts/fix-offline-html.mjs",

@@ -87,16 +87,16 @@
   }
 }
 
-/* <1024px 单列堆叠时按 DOM 顺序排，通知公告会被压到图片新闻、商会动态之后。
-   通知公告时效性最强，用 order 提到最前。纯 CSS，不动 DOM ——
-   DOM 顺序保持「内容优先」，与读屏和打印的顺序一致。 */
+/* <1024px 走单列堆叠，顺序就是 DOM 顺序：图片新闻 → 商会动态 → 通知公告。
+   ⚠ 曾经这里有一条 `.col-a-side { order: -1 }`，想把时效性最强的通知公告提到最前。
+     结果是手机上图片新闻被压到第三屏（用户反馈：「图片新闻应该在第 1 个」）。
+     不要再用 order 调整这里的顺序 —— 要换顺序就改 layouts/index.html 的 DOM，
+     这样读屏、打印、无 CSS 时的顺序也跟着一起对。 */
 @media (max-width: 1023px) {
   .home-row-a {
     display: flex;
     flex-direction: column;
   }
-
-  .col-a-side { order: -1; }
 }
 
 /* 首页正文（content/_index.md），多数站点留空，留空时模板不会渲染 */
