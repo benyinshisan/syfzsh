@@ -179,7 +179,8 @@ disableKinds = ["taxonomy", "term"]
 #  ⚠ 改栏目时必须同改四处，漏一处就会导航出现空白项或构建报错：
 #    1. content/<一级>/_index.md 与每个二级目录的 _index.md（目录必须存在）
 #    2. 本段 [[menu.main]]（一级给 identifier，二级用 parent 关联）
-#    3. [params.home] 里的各 xxxSection
+#    3. data/home.yaml 里的各 xxxSection（首页版块配置已从本文件迁到那里，
+#       后台「首页 / 首页版块」编辑的就是它；hugo.toml 里没有 [params.home] 了）
 #    4. [[params.homeTabs]] 里的各 section
 ##############################################################################
 [[menu.main]]

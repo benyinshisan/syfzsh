@@ -13,19 +13,20 @@
 3. **零运行时依赖。** 没有 jQuery、没有构建工具链、没有 npm 依赖参与前端。
    `assets/js/theme.js` 是唯一一份 JS，ES5 语法，浏览器直接执行。
 
-模板总量约 900 行 Go template + 4 个 CSS 文件 + 1 个 JS 文件。
+模板总量约 1400 行 Go template + 4 个 CSS 文件 + 1 个 JS 文件。
 
 ## 2. 数据流
 
 ```
-hugo.toml [params.home]  ──┐
+data/home.yaml（版块配置）──┐
                            ├─→ layouts/index.html → partials/home/*.html
 content/<栏目>/            ─┘                         │
                                                      ├─→ partials/components/section-head.html
                                                      └─→ partials/components/news-list.html
 
 data/*.yaml ──→ partials/footer.html / home/friendlinks.html / components/sidebar.html
-             └─→ layouts/_default/directory.html
+             └─→ partials/components/member-pages.html（会员顺序的唯一消费方）
+                 └─→ home/members-wall.html / _default/directory.html / footer.html
 ```
 
 ## 3. 模板清单
@@ -57,7 +58,7 @@ data/*.yaml ──→ partials/footer.html / home/friendlinks.html / components/
 
 | 文件 | 对应 |
 |---|---|
-| `index.html` | 首页，9 个版块 partial（版块本体在 `partials/home/`） |
+| `index.html` | 首页，8 个版块 partial（版块本体在 `partials/home/`） |
 | `_default/list.html` | 栏目页，**自动判别一级/二级**（见下） |
 | `_default/single.html` | 文章页 |
 | `member/single.html` | 会员单位详情页，由 `type: member` 命中（见下） |
@@ -148,6 +149,8 @@ pages.css       首页栅格、内页两栏、栏目录入、名录页（.direct
 - 导航折叠按钮带 `aria-expanded` / `aria-controls`；`Escape` 关闭
 - 页签是 `role="tab"` + `aria-selected`，支持左右方向键
 - 占位块是 `role="img"` + `aria-label`，不是空 `<img>`
+  （例外：`components/member-logo.html` 的占位块是 `aria-hidden="true"` —— 会员名就在
+   紧邻的卡片标题 / `<h1>` 里，再念一遍是重复。这是有意的偏差，不是漏改）
 - 点击目标统一 `--tap: 44px`
 - `:focus-visible` 才显示轮廓，鼠标点击不显示
 - 装饰性元素（圆点、箭头）带 `aria-hidden="true"`
