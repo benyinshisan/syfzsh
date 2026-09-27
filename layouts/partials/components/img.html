@@ -31,7 +31,12 @@
 {{- $title := .title | default "" -}}
 {{- $loading := .loading | default "lazy" -}}
 {{- $class := .class | default "" -}}
-{{- $max := .width | default 1200 -}}
+{{- /* ⚠ 不能用 `default 1200`：Hugo 的 default 把 0 当作「空」，传 width=0
+       （文档里承诺的「只转格式、不缩放」）会被顶成 1200，于是永远走缩放分支，
+       大图仍被压到 1200 —— 参数静默失效。必须用 isset 区分「没传」和「传了 0」。
+       同仓库的 components/news-list.html 已用 isset 躲开这个坑，这里当初漏了。 */}}
+{{- $max := 1200 -}}
+{{- if isset . "width" }}{{ $max = .width }}{{ end -}}
 
 {{- /* 外链不做任何处理，也不去 assets 里找 */ -}}
 {{- $external := or (hasPrefix $src "http://") (hasPrefix $src "https://") (hasPrefix $src "//") -}}

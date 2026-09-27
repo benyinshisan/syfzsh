@@ -9,8 +9,16 @@
 {{- $p := .paginator -}}
 {{- if gt $p.TotalPages 1 }}
 <nav class="pagination" aria-label="分页">
+  {{- /* 当前已是首页/末页时输出 <span> 而不是「指向自己的 <a class=disabled>」：
+       带 href 的链接对键盘和读屏来说仍然可点可聚焦，只是颜色变灰，
+       会被念成一个可用的「首页」链接。样式不变（.pagination .disabled 本就
+       同时管 a 与 span）。 */}}
   {{- with $p.First }}
-  <a href="{{ .URL }}"{{ if eq .PageNumber $p.PageNumber }} class="disabled"{{ end }}>首页</a>
+  {{- if eq .PageNumber $p.PageNumber }}
+  <span class="disabled">首页</span>
+  {{- else }}
+  <a href="{{ .URL }}">首页</a>
+  {{- end }}
   {{- end }}
   {{- with $p.Prev }}
   <a href="{{ .URL }}">上一页</a>
@@ -20,7 +28,8 @@
 
   {{- range $p.Pagers }}
   {{- if eq .PageNumber $p.PageNumber }}
-  <span class="active">{{ .PageNumber }}</span>
+  {{- /* aria-current：读屏才知道这是「当前页」，否则只是念出一个数字 */}}
+  <span class="active" aria-current="page">{{ .PageNumber }}</span>
   {{- else if and (ge .PageNumber (sub $p.PageNumber 3)) (le .PageNumber (add $p.PageNumber 3)) }}
   <a href="{{ .URL }}">{{ .PageNumber }}</a>
   {{- end }}
@@ -32,7 +41,11 @@
   <span class="disabled">下一页</span>
   {{- end }}
   {{- with $p.Last }}
-  <a href="{{ .URL }}"{{ if eq .PageNumber $p.PageNumber }} class="disabled"{{ end }}>末页</a>
+  {{- if eq .PageNumber $p.PageNumber }}
+  <span class="disabled">末页</span>
+  {{- else }}
+  <a href="{{ .URL }}">末页</a>
+  {{- end }}
   {{- end }}
   <span class="pagination-info">共 {{ $p.TotalPages }} 页 / {{ $p.TotalNumberOfElements }} 条</span>
 </nav>

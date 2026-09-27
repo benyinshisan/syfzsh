@@ -22,7 +22,14 @@
       {{- range site.Menus.main }}
       {{- if not .Parent }}
       {{- $item := . }}
-      {{- $on := or (eq .URL $cur) (and (ne .URL "/") (hasPrefix $cur .URL)) }}
+      {{- /* 当前栏目判定：①本项就是当前页 ②当前页在本项之下（栏目页与它的子孙页）。
+             ⚠ 第二条的排除项必须与 site.Home.RelPermalink 比，**不能写 (ne .URL "/")**：
+               pageRef 菜单项的 .URL 已经带了 baseURL 的子路径前缀（部署在
+               https://…/syfzsh/ 时首页项是 "/syfzsh/"），与字面量 "/" 永不相等，
+               排除失效 —— 于是每个子页面上「首页」都会跟着亮起来。
+               同源问题与完整说明见 partials/components/site-url.html。 */}}
+      {{- $home := site.Home.RelPermalink }}
+      {{- $on := or (eq .URL $cur) (and (ne .URL $home) (hasPrefix $cur .URL)) }}
       {{- $subId := printf "sub-%s" ($item.Identifier | default (printf "w%d" $item.Weight)) }}
       <li class="nav-item{{ if .HasChildren }} has-sub{{ end }}{{ if $on }} on{{ end }}">
         <div class="nav-row">

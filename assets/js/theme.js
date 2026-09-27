@@ -1,5 +1,5 @@
 /* ==========================================================================
- * theme.js — 浙江省商贸业联合会 站点交互
+ * theme.js — 兰州市商业发展商会 站点交互
  * --------------------------------------------------------------------------
  * 旧站依赖 jQuery 1.4.2 + SuperSlide 2.1.1 + web.js 实现四类交互：
  *   1. 图片新闻轮播（SuperSlide 的 autoPlay）        -> initCarousel()
@@ -70,11 +70,11 @@
 
   /* ------------------------------------------------------------------ *
    * 2. 图片新闻轮播
-   *    DOM: [data-carousel] > .sy_ban_p > li  +  .sy_ban_x > span
+   *    DOM: [data-carousel] > .sy_ban_p > li  +  .sy_ban_x > button
    * ------------------------------------------------------------------ */
   function initCarousel(root) {
     var slides = $$('.sy_ban_p > li', root);
-    var dots = $$('.sy_ban_x > span', root);
+    var dots = $$('.sy_ban_x > button', root);
     if (slides.length < 2) { return; }
 
     var interval = parseInt(root.getAttribute('data-interval'), 10) || 3000;
@@ -92,7 +92,12 @@
          以前只有一条图片新闻时不初始化，HTML 里写死的 class 反而完好，
          所以是「加了第二条图片新闻之后」突然坏的。 */
       slides.forEach(function (li, n) { li.classList.toggle('on', n === index); });
-      dots.forEach(function (sp, n) { sp.classList.toggle('on', n === index); });
+      dots.forEach(function (sp, n) {
+        sp.classList.toggle('on', n === index);
+        /* 只在选中的那颗圆点上留 aria-current，读屏才知道「现在看的是第几张」 */
+        if (n === index) { sp.setAttribute('aria-current', 'true'); }
+        else { sp.removeAttribute('aria-current'); }
+      });
     }
 
     function tick() { if (!paused) { show(index + 1); } }
@@ -107,6 +112,13 @@
     dots.forEach(function (sp, n) {
       on(sp, 'mouseenter', function () { paused = true; show(n); });
       on(sp, 'mouseleave', function () { paused = false; });
+      /* 触屏没有 hover，键盘也点不了 <span> —— 这一条是手机与键盘唯一的换图入口。
+         键盘用 Enter/Space 触发 click，与点击同一条路径。
+         聚焦时只「暂停自动播放」不换图（光标扫过就跳内容会让人失去位置感），
+         真要看下一张，按一下即可。 */
+      on(sp, 'click', function () { show(n); });
+      on(sp, 'focus', function () { paused = true; });
+      on(sp, 'blur', function () { paused = false; });
     });
     on(root, 'mouseenter', function () { paused = true; });
     on(root, 'mouseleave', function () { paused = false; });
@@ -258,8 +270,10 @@
       }
       var html = '<p class="search-count">共找到 <strong>' + pages.length + '</strong> 条结果</p><ul>';
       pages.slice(0, 100).forEach(function (p) {
+        /* 标题用 h2 不用 h3：搜索页的 h1 是「站内搜索」，下面直接跳到 h3
+           是跳级（读屏的标题导航会缺一层）。样式由 .search-result h2 接管 */
         html += '<li class="search-result">' +
-                '<h3><a href="' + esc(p.url) + '">' + esc(p.title) + '</a></h3>' +
+                '<h2><a href="' + esc(p.url) + '">' + esc(p.title) + '</a></h2>' +
                 '<div class="url">' + esc(p.url) + ' · ' + esc(p.date) +
                 (p.section ? ' · ' + esc(p.section) : '') + '</div>' +
                 '<div class="excerpt">' + esc(p.excerpt) + '</div></li>';

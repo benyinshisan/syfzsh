@@ -397,7 +397,7 @@
 
 .search-result:last-child { border-bottom: 0; }
 
-.search-result h3 {
+.search-result h2 {
   margin-bottom: var(--sp-1);
   font-size: var(--fs-md);
 }

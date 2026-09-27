@@ -730,6 +730,10 @@
 }
 
 .sy_ban_dot {
+  /* 是 <button> 不是 <span>（触屏/键盘要能操作，见 home/featured.html），
+     所以要把浏览器给按钮的默认边框与内边距清掉，否则圆点上会套一个方框 */
+  border: 0;
+  padding: 0;
   width: 8px;
   height: 8px;
   font-size: 0;
@@ -739,6 +743,9 @@
   cursor: pointer;
   transition: width var(--transition), background var(--transition);
 }
+
+/* 键盘焦点：8px 的圆点很小，2px 轮廓贴边会看不清，加大偏移 */
+.sy_ban_dot:focus-visible { outline-offset: 3px; }
 
 .sy_ban_dot.on {
   width: 20px;

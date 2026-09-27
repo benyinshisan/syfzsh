@@ -25,7 +25,14 @@
       </ul>
       <div class="sy_ban_x">
         {{- range $i, $p := . }}
-        <span class="sy_ban_dot{{ if eq $i 0 }} on{{ end }}">{{ add $i 1 }}</span>
+        {{- /* 圆点必须是 <button>，不能是 <span>：<span> 既不能聚焦也不能点，
+               而触屏没有 hover —— 手机用户与键盘用户都换不了图，只剩自动播放；
+               系统开了「减弱动态效果」时自动播放又会停（theme.js 的 start()），
+               于是整整一组图片新闻卡在第一张，谁也翻不动。
+               aria-label 让读屏念出是第几张、内容是啥；数字本身是给眼睛看的。 */}}
+        <button type="button" class="sy_ban_dot{{ if eq $i 0 }} on{{ end }}"
+                aria-label="第 {{ add $i 1 }} 张：{{ $p.Title }}"
+                {{- if eq $i 0 }} aria-current="true"{{ end }}>{{ add $i 1 }}</button>
         {{- end }}
       </div>
     </div>

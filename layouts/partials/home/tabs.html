@@ -13,7 +13,9 @@
 {{- range $i, $t := . }}{{ if $t.active }}{{ $activeIdx = $i }}{{ end }}{{ end -}}
 <div class="tabs card" data-tabs>
 
-  <div class="tab-nav" role="tablist">
+  {{- /* role=tablist 必须带可访问名，否则读屏只念「选项卡」，听不出这组
+         页签是干什么的（这块版块本身没有 h2，见页签上的 aria-label） */}}
+  <div class="tab-nav" role="tablist" aria-label="首页栏目页签">
     {{- range $i, $t := . }}
     {{- $href := "" }}{{ with site.GetPage $t.section }}{{ $href = .RelPermalink }}{{ end }}
     <button type="button" role="tab" id="tab-btn-{{ $i }}"
