@@ -26,7 +26,7 @@
       {{- $subId := printf "sub-%s" ($item.Identifier | default (printf "w%d" $item.Weight)) }}
       <li class="nav-item{{ if .HasChildren }} has-sub{{ end }}{{ if $on }} on{{ end }}">
         <div class="nav-row">
-          <a class="nav-link" href="{{ .URL | relURL }}">{{ .Name }}</a>
+          <a class="nav-link" href="{{ partial "components/site-url.html" .URL }}">{{ .Name }}</a>
           {{- if .HasChildren }}
           <button type="button" class="sub-toggle" aria-expanded="false"
                   aria-controls="{{ $subId }}" aria-label="展开「{{ .Name }}」子菜单"></button>
@@ -35,7 +35,7 @@
         {{- with .Children }}
         <ul class="sub" id="{{ $subId }}">
           {{- range . }}
-          <li><a href="{{ .URL | relURL }}">{{ .Name }}</a></li>
+          <li><a href="{{ partial "components/site-url.html" .URL }}">{{ .Name }}</a></li>
           {{- end }}
         </ul>
         {{- end }}

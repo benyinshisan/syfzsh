@@ -8,10 +8,10 @@
         请从下方入口继续浏览，或使用站内搜索查找内容。
       </p>
       <ul class="news-list">
-        <li class="news-item"><i class="dot" aria-hidden="true"></i><a href="{{ "/" | relURL }}">返回首页</a></li>
-        <li class="news-item"><i class="dot" aria-hidden="true"></i><a href="{{ "/news/" | relURL }}">新闻中心</a></li>
-        <li class="news-item"><i class="dot" aria-hidden="true"></i><a href="{{ "/policy/" | relURL }}">政策法规</a></li>
-        <li class="news-item"><i class="dot" aria-hidden="true"></i><a href="{{ "/search/" | relURL }}">站内搜索</a></li>
+        <li class="news-item"><i class="dot" aria-hidden="true"></i><a href="{{ partial "components/site-url.html" "/" }}">返回首页</a></li>
+        <li class="news-item"><i class="dot" aria-hidden="true"></i><a href="{{ partial "components/site-url.html" "/news/" }}">新闻中心</a></li>
+        <li class="news-item"><i class="dot" aria-hidden="true"></i><a href="{{ partial "components/site-url.html" "/policy/" }}">政策法规</a></li>
+        <li class="news-item"><i class="dot" aria-hidden="true"></i><a href="{{ partial "components/site-url.html" "/search/" }}">站内搜索</a></li>
       </ul>
     </div>
   </div>

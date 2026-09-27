@@ -24,6 +24,6 @@
   {{ $open | safeHTML }}{{ .title }}{{ $close | safeHTML }}
   {{- with .subtitle }}<span class="section-sub">{{ . }}</span>{{ end }}
   {{- with .href }}
-  <a class="section-more" href="{{ . | relURL }}">{{ $.more | default "更多" }}<span class="section-more-arrow" aria-hidden="true">›</span></a>
+  <a class="section-more" href="{{ partial "components/site-url.html" . }}">{{ $.more | default "更多" }}<span class="section-more-arrow" aria-hidden="true">›</span></a>
   {{- end }}
 </div>

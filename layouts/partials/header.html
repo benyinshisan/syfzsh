@@ -8,7 +8,7 @@
         <a href="javascript:void(0);" id="set-homepage">设为首页</a>
         <a href="javascript:void(0);" id="add-favorite">加入收藏</a>
         {{- range site.Params.topLinks }}
-        <a href="{{ .url | relURL }}">{{ .label }}</a>
+        <a href="{{ partial "components/site-url.html" .url }}">{{ .label }}</a>
         {{- end }}
       </div>
     </div>
@@ -21,7 +21,7 @@
   */ -}}
   <div class="banner">
     <div class="banner-inner container">
-      <a class="brand" href="{{ "/" | relURL }}" title="{{ site.Title }}">
+      <a class="brand" href="{{ partial "components/site-url.html" "/" }}" title="{{ site.Title }}">
         <span class="brand-name">{{ site.Params.siteName | default site.Title }}</span>
         {{- with site.Params.slogan }}<span class="brand-slogan">{{ . }}</span>{{ end }}
       </a>

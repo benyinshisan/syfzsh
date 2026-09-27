@@ -17,7 +17,12 @@
 <meta property="og:url" content="{{ .Permalink }}">
 <meta property="og:site_name" content="{{ site.Title }}">
 {{- with .Params.image }}
-<meta property="og:image" content="{{ . | absURL }}">
+{{- /* ⚠ 不能直接 {{ . | absURL }}：Hugo 0.166 的 absURL 对以 / 开头的路径
+       不补 baseURL 里的子路径前缀，正文封面图存的是 /uploads/xxx.jpg，
+       于是分享出去的缩略图会指向 https://chihayam.github.io/uploads/xxx.jpg（404）。
+       去掉前导斜杠再 absURL 才会得到 /syfzsh/uploads/xxx.jpg。
+       同源问题与完整说明见 partials/components/site-url.html。 */}}
+<meta property="og:image" content="{{ . | strings.TrimPrefix "/" | absURL }}">
 {{- end }}
 
 {{- /* ---------- RSS ---------- */ -}}

@@ -1,0 +1,35 @@
+{{- /*
+  站内 URL 归一化 —— 把「人写的路径」变成「子路径部署下也点得开的路径」。
+
+  ⚠ 为什么不能直接用 relURL（Hugo 0.166.0 实测，见下表）：
+     relURL / absURL 对**以 / 开头**的路径【不补】baseURL 里的子路径前缀，
+     只补不带前导斜杠的。本站部署在 https://chihayam.github.io/syfzsh/，
+     于是 {{ "/about/join/" | relURL }} 得到 "/about/join/" —— 少了 /syfzsh/，
+     点下去 404。实测对照（baseURL = https://chihayam.github.io/syfzsh/）：
+         {{ "/" | relURL }}                    → "/"                ✗
+         {{ "/about/join/" | relURL }}         → "/about/join/"     ✗
+         {{ "images/x.gif" | relURL }}         → "/syfzsh/images/x.gif" ✓
+         {{ "/syfzsh/about/x/" | relURL }}     → "/syfzsh/about/x/"  ✓（已带前缀则原样放过）
+
+  所以这里分三种情况处理，调用方只管把路径丢进来：
+     1. 外链 / 锚点（http(s)://、//、mailto:、tel:、#）→ 原样返回
+     2. "/" → 站点首页（用 site.Home.RelPermalink，天然带前缀）
+     3. 已经带站内前缀的（如页面 .RelPermalink 得到的 /syfzsh/xxx/）→ 原样返回，
+        避免变成 /syfzsh/syfzsh/xxx/
+     4. 其余（"/about/join/"、"about/join/"）→ 去掉前导斜杠后交给 relURL 补前缀
+
+  第 3 条的判据用 site.Home.RelPermalink：站点部署在根目录时它等于 "/"，
+  于是任何以 / 开头的路径都会命中第 3 条被原样返回 —— 对根目录部署恰好也是对的。
+*/ -}}
+{{- $u := . | default "" | string -}}
+{{- $home := site.Home.RelPermalink -}}
+{{- if or (hasPrefix $u "http://") (hasPrefix $u "https://") (hasPrefix $u "//")
+          (hasPrefix $u "mailto:") (hasPrefix $u "tel:") (hasPrefix $u "#") -}}
+  {{- $u -}}
+{{- else if eq $u "/" -}}
+  {{- $home -}}
+{{- else if hasPrefix $u $home -}}
+  {{- $u -}}
+{{- else -}}
+  {{- $u | strings.TrimPrefix "/" | relURL -}}
+{{- end -}}

@@ -3,7 +3,7 @@
   依赖 Hugo 的 section 树，无需手工维护。
 */ -}}
 <nav class="breadcrumb" aria-label="面包屑">
-  <a href="{{ "/" | relURL }}">首页</a>
+  <a href="{{ partial "components/site-url.html" "/" }}">首页</a>
   {{- range .Ancestors.Reverse }}
   {{- if not .IsHome }}
   <span class="sep">/</span>

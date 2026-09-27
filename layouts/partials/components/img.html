@@ -60,7 +60,7 @@
     alt="{{ $alt }}"{{ with $title }} title="{{ . }}"{{ end }}
     loading="{{ $loading }}" decoding="async"{{ with $class }} class="{{ . }}"{{ end }}>
 {{- else -}}
-  <img src="{{ if $external }}{{ $src }}{{ else }}{{ $src | relURL }}{{ end }}"
+  <img src="{{ if $external }}{{ $src }}{{ else }}{{ partial "components/site-url.html" $src }}{{ end }}"
     alt="{{ $alt }}"{{ with $title }} title="{{ . }}"{{ end }}
     loading="{{ $loading }}" decoding="async"{{ with $class }} class="{{ . }}"{{ end }}>
 {{- end -}}

@@ -8,7 +8,7 @@
 {{- if $s.enable }}
 <div class="side-card card">
   {{ partial "components/section-head.html" (dict "title" "站内搜索" "tag" "h2") }}
-  <form class="search-box" action="{{ $s.action | default "/search/" | relURL }}" method="get" role="search">
+  <form class="search-box" action="{{ partial "components/site-url.html" ($s.action | default "/search/") }}" method="get" role="search">
     <label class="sr-only" for="field">站内搜索</label>
     <input type="text" id="field" name="q" placeholder="{{ $s.placeholder }}" autocomplete="off">
     <button type="submit">搜索</button>
@@ -19,7 +19,7 @@
 {{- with site.Params.sideLinks }}
 <div class="side-links">
   {{- range . }}
-  <a class="side-link" href="{{ .url | relURL }}" title="{{ .label }}">{{ .label }}</a>
+  <a class="side-link" href="{{ partial "components/site-url.html" .url }}" title="{{ .label }}">{{ .label }}</a>
   {{- end }}
 </div>
 {{- end }}
