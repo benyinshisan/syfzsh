@@ -1,0 +1,53 @@
+{{- /*
+  会员页面列表（**唯一**的会员排序真相）
+  ---------------------------------------------------------------------------
+  三处会员展示都调这个 partial 取数，所以顺序不可能分叉：
+      · partials/home/members-wall.html   首页「会员单位」LOGO 墙
+      · _default/directory.html           会员名录页
+      · partials/footer.html              页脚「会员名录」滚动条
+
+  排序规则（两步）：
+      1) data/members_order.yaml 的 order 名单里**点过名的**，按名单顺序排；
+      2) 名单里没有的，接在后面，按 Hugo 默认顺序（weight → date → linkTitle）。
+
+  为什么要有第 2 步：会员是在后台随时新增的，而"加进排序名单"是另一个动作。
+  如果只认名单，新录的会员就会在名录里凭空消失 —— 那种"保存成功了但看不见"
+  的故障最难查。这里一律兜住：没点名的排后面，但一定在。
+
+  ⚠ 名单里写错的别名（比如把 slug 打错、或会员已被删）会被忽略，同时打一条
+    WARNING。这是有意的：静默忽略等于让人以为排序生效了。
+    看警告：npm run build 的输出，或 npm run dev 那个窗口。
+
+  返回：排好序的会员页面 slice。调用方直接 range 或 first N。
+*/ -}}
+
+{{- $dir := site.GetPage "/members/directory" -}}
+{{- $all := slice -}}
+{{- with $dir }}{{ $all = .RegularPages }}{{ end -}}
+
+{{- $order := slice -}}
+{{- with hugo.Data.members_order }}{{ $order = .order | default slice }}{{ end -}}
+
+{{- $out := slice -}}
+{{- $placed := slice -}}
+
+{{- /* 第一步：按名单顺序点名 */ -}}
+{{- range $order -}}
+  {{- $key := printf "%v" . -}}
+  {{- $hit := where $all "Slug" $key -}}
+  {{- if and $hit (not (in $placed $key)) -}}
+    {{- $out = $out | append (index $hit 0) -}}
+    {{- $placed = $placed | append $key -}}
+  {{- else if not $hit -}}
+    {{- warnf "[会员排序] data/members_order.yaml 里的「%s」找不到对应会员，该行被忽略（多半是别名写错，或这位会员已删除）" $key -}}
+  {{- end -}}
+{{- end -}}
+
+{{- /* 第二步：没点名的接在后面 */ -}}
+{{- range $all -}}
+  {{- if not (in $placed (printf "%v" .Slug)) -}}
+    {{- $out = $out | append . -}}
+  {{- end -}}
+{{- end -}}
+
+{{- return $out -}}

@@ -6,31 +6,30 @@
     <article class="panel">
       <div class="panel-body">
         <header class="article-head">
-          <h1>{{ .Title }}</h1>
+          <h1 class="article-title">{{ .Title }}</h1>
           <div class="article-meta">
             <span>发布日期：{{ .Date.Format "2006-01-02" }}</span>
             {{- with .CurrentSection }}
             <span>栏目：<a href="{{ .RelPermalink }}">{{ .Title }}</a></span>
             {{- end }}
             {{- with .Params.source }}<span>来源：{{ . }}</span>{{ end }}
+            {{- with .Params.author }}<span>作者：{{ . }}</span>{{ end }}
           </div>
         </header>
 
+        {{- /* 有配图才输出图片位，避免空骨架里出现占位块挡在正文前面 */ -}}
         {{- with .Params.image }}
-        <p style="text-align:center;margin:16px 0 0">
-          <img src="{{ . | relURL }}" alt="{{ $.Title }}" style="max-width:100%">
-        </p>
+        <figure class="article-figure">
+          {{ partial "components/img.html" (dict "src" . "alt" $.Title "loading" "eager" "width" 1200) }}
+        </figure>
         {{- end }}
 
-        <div class="article-body {{ with .Params.bodyClass }}{{ . }}{{ end }}">
+        <div class="article-body{{ with .Params.bodyClass }} {{ . }}{{ end }}">
           {{ .Content }}
         </div>
 
         <footer class="article-foot">
-          {{- with .Params.legacyUrl }}
-          <p>旧站原文：<a href="{{ . }}" target="_blank" rel="noopener">{{ . }}</a></p>
-          {{- end }}
-          <nav class="article-nav">
+          <nav class="article-nav" aria-label="上下篇">
             <span class="prev">
               {{- with .PrevInSection }}上一篇：<a href="{{ .RelPermalink }}" title="{{ .Title }}">{{ .Title | truncate 30 }}</a>
               {{- else }}上一篇：没有了{{ end }}

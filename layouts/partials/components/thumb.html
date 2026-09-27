@@ -1,0 +1,20 @@
+{{- /*
+  缩略图 / 无图占位块
+  ---------------------------------------------------------------------------
+  空骨架里绝大多数文章没有配图。若直接 <img src="">，浏览器会渲染成破图，
+  整站看起来像坏了。这里统一降级：有 .Params.image 才出 <img>，
+  否则出一个纯 CSS 的 .media-ph 色块 + 标题文字。
+
+  参数（dict）：
+    page     必填，page 对象
+    alt      选填，默认取 page.Title
+    loading  选填，默认 "lazy"；首屏轮播可传 "eager"
+*/ -}}
+{{- $p := .page -}}
+{{- $alt := .alt | default $p.Title -}}
+{{- $loading := .loading | default "lazy" -}}
+{{- with $p.Params.image -}}
+{{ partial "components/img.html" (dict "src" . "alt" $alt "loading" $loading "width" 600) }}
+{{- else -}}
+<span class="media-ph" role="img" aria-label="{{ $alt }}"><span class="media-ph-text">{{ $alt | truncate 20 }}</span></span>
+{{- end -}}

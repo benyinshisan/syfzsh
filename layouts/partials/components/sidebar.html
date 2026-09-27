@@ -1,43 +1,46 @@
 {{- /*
-  右栏（旧站 index_r16_c39 / link1 / link2 / index_r80_c38 / index_r50_c38 + 协会链接切图）
-  图片位由 hugo.toml 的 [[params.sideLinks]] 配置，"协会链接"取自 data/partners.yaml
+  右栏：站内搜索 + 快捷入口（hugo.toml 的 [[params.sideLinks]]）+ 合作机构（data/partners.yaml）
+  旧站这一栏全是切图（index_r18_c39.jpg 等）且「更多」热区硬编码指向 /news/events/，
+  与它标题写的栏目并不一致 —— 这里一并修掉。
 */ -}}
 {{- $s := site.Params.search -}}
 
 {{- if $s.enable }}
-<form class="search-box" action="{{ $s.action | default "/search/" | relURL }}" method="get" role="search">
-  <label class="sr-only" for="field">站内搜索</label>
-  <input type="text" id="field" name="q" placeholder="{{ $s.placeholder }}" autocomplete="off">
-  <button type="submit" aria-label="搜索">搜索</button>
-</form>
+<div class="side-card card">
+  {{ partial "components/section-head.html" (dict "title" "站内搜索" "tag" "h2") }}
+  <form class="search-box" action="{{ $s.action | default "/search/" | relURL }}" method="get" role="search">
+    <label class="sr-only" for="field">站内搜索</label>
+    <input type="text" id="field" name="q" placeholder="{{ $s.placeholder }}" autocomplete="off">
+    <button type="submit">搜索</button>
+  </form>
+</div>
 {{- end }}
 
-<img src="{{ "images/index_r18_c39.jpg" | relURL }}" width="248" height="36" usemap="#map-party"
-     alt="党群建设" style="display:block;margin-top:8px">
-<map name="map-party"><area href="{{ "/news/events/" | relURL }}" shape="rect" coords="186,13,233,31" alt="更多"></map>
-
+{{- with site.Params.sideLinks }}
 <div class="side-links">
-  {{- range site.Params.sideLinks }}
-  <a href="{{ .url | relURL }}" title="{{ .alt }}">
-    <img src="{{ printf "images/%s" .image | relURL }}" width="{{ .width }}" height="{{ .height }}" alt="{{ .alt }}">
-  </a>
+  {{- range . }}
+  <a class="side-link" href="{{ .url | relURL }}" title="{{ .label }}">{{ .label }}</a>
   {{- end }}
 </div>
+{{- end }}
 
-{{- with site.Data.partners.partners }}
-<div class="partner-box">
-  <div class="partner-head">
-    <img src="{{ "images/index_r50_c38.jpg" | relURL }}" width="252" height="40" alt="协会链接">
-  </div>
+{{- with hugo.Data.partners.partners }}
+<div class="partner-box card">
+  {{ partial "components/section-head.html" (dict "title" "合作机构" "tag" "h2") }}
   <div class="partner-body">
     {{- range . }}
-    <a href="{{ .url }}" target="_blank" rel="noopener" title="{{ .name }}">
-      <img src="{{ .logo | relURL }}" alt="{{ .name }}">
+    {{- /* $name 必须先存下来：进了 with .logo 之后 . 就变成 logo 字符串了，
+           再写 .name 是在字符串上找字段 —— data/partners.yaml 一旦真填了 logo
+           就会当场报错。原来那版是隐雷。 */ -}}
+    {{- $name := .name -}}
+    <a class="partner" href="{{ .url }}" target="_blank" rel="noopener" title="{{ $name }}">
+      {{- with .logo }}
+      {{ partial "components/img.html" (dict "src" . "alt" $name "width" 240) }}
+      {{- else }}
+      <span class="media-ph media-ph-sm" role="img" aria-label="{{ $name }}"><span class="media-ph-text">{{ $name | truncate 12 }}</span></span>
+      {{- end }}
     </a>
     {{- end }}
-  </div>
-  <div class="partner-foot">
-    <img src="{{ "images/fzjg_down.jpg" | relURL }}" width="252" height="7" alt="">
   </div>
 </div>
 {{- end }}

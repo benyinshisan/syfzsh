@@ -2,9 +2,9 @@
 title: 入会指南
 linkTitle: 入会指南
 weight: 4
-description: "会员类别、入会条件、入会流程与联系方式。"
+description: "此处为「入会指南」页面的简介占位。"
 ---
 
-会员类别、入会条件、入会流程与联系方式。
+此处为「入会指南」正文占位。
 
-> 请在 `content/about/join.md` 中补充正文内容。
+> 请在 `content/about/join.md` 中补充正文内容，或通过 CMS 的「关于我们」分组编辑。

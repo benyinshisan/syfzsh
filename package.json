@@ -1,13 +1,18 @@
 {
-  "name": "zjsm-hugo",
+  "name": "association-hugo-template",
   "version": "1.0.0",
   "private": true,
-  "description": "浙江省商贸业联合会 Hugo 站点 — 含 Decap CMS 本地内容管理",
+  "description": "协会 / 商会站点 Hugo 模板 — 响应式现代版式 + Decap CMS 本地内容管理",
   "scripts": {
     "dev": "node scripts/hugo.mjs server -D",
     "hugo": "node scripts/hugo.mjs",
     "build": "node scripts/hugo.mjs --gc --minify",
-    "cms": "decap-server"
+    "build:local": "node scripts/hugo.mjs --config hugo.toml,hugo.local.toml --destination public-local --cleanDestinationDir && node scripts/fix-offline-html.mjs",
+    "cms": "decap-server",
+    "cms:config": "node scripts/gen-cms-config.mjs",
+    "members:import": "node scripts/import-members.mjs",
+    "members:order": "node scripts/sync-member-order.mjs",
+    "cms:vendor": "node scripts/vendor-decap.mjs"
   },
   "devDependencies": {
     "decap-server": "^3.11.3"

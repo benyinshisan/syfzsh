@@ -2,7 +2,8 @@
 {{- $title := cond $isHome (printf "%s — %s" site.Title site.Params.slogan) (printf "%s — %s" .Title site.Title) -}}
 {{- $desc := or .Description .Params.summary site.Params.description -}}
 <meta charset="utf-8">
-<meta name="viewport" content="width=1000">
+{{- /* 响应式：绝对不要写 width=1000 之类的固定值，那会让手机上整页缩小成一条 */}}
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{{ $title }}</title>
 <meta name="keywords" content="{{ or .Params.keywords site.Params.keywords }}">
 <meta name="description" content="{{ $desc | plainify | truncate 180 }}">
@@ -24,13 +25,19 @@
 <link rel="alternate" type="application/rss+xml" href="{{ .Permalink }}" title="{{ site.Title }}">
 {{ end }}
 
-{{- /* ---------- 样式：Hugo Pipes 合并 + 压缩 + 指纹 ---------- */ -}}
+{{- /*
+  样式：Hugo Pipes 合并 + 压缩 + 指纹
+  ⚠ 这里列出的每个文件都必须真实存在。resources.Get 取不到会返回 nil，
+    紧接着 resources.Concat 会直接硬崩（不是优雅降级）。
+     新增/改名 CSS 时，务必同步本清单。
+*/ -}}
 {{- $css := slice
-      (resources.Get "css/legacy.css")
-      (resources.Get "css/default.css")
-      (resources.Get "css/theme.css")
-    | resources.Concat "css/zjsm.css" | minify | fingerprint -}}
+      (resources.Get "css/tokens.css")
+      (resources.Get "css/base.css")
+      (resources.Get "css/components.css")
+      (resources.Get "css/pages.css")
+    | resources.Concat "css/site.css" | minify | fingerprint -}}
 <link rel="stylesheet" href="{{ $css.RelPermalink }}" integrity="{{ $css.Data.Integrity }}">
 
-<link rel="icon" href="{{ "images/dian1.gif" | relURL }}">
+<link rel="icon" href="{{ "images/favicon.gif" | relURL }}">
 </head>

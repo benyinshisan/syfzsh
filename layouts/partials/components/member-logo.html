@@ -1,0 +1,13 @@
+{{- /*
+  会员单位 LOGO
+  ---------------------------------------------------------------------------
+  与 components/thumb.html 的唯一区别：占位块**不写字**。会员的名号就在紧邻的
+  卡片名 / <h1> 里，占位块再写一遍会重复。文章缩略图仍用 thumb.html。
+  参数：page（必填，会员内容页）
+*/ -}}
+{{- $p := .page -}}
+{{- with $p.Params.image -}}
+{{ partial "components/img.html" (dict "src" . "alt" $p.Title "width" 320) }}
+{{- else -}}
+<span class="media-ph" aria-hidden="true"></span>
+{{- end -}}

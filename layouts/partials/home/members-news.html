@@ -1,0 +1,28 @@
+{{- /*
+  会员动态（首页整行）
+  ---------------------------------------------------------------------------
+  与「行业资讯」拆开：会员动态不再和行业资讯挤在行二的双栏里，而是与 LOGO 墙
+  一起构成首页的「会员天地」区，独占一行、宽屏多列。
+
+  count 见 data/home.yaml 的 membersNews.count —— 整行宽度能排下多列，
+  所以给的条数比行二那几张卡多。
+*/ -}}
+{{- $cfg := hugo.Data.home | default dict -}}
+{{- $c := $cfg.membersNews | default dict -}}
+{{- $secPath := $c.section | default "members/dynamics" -}}
+{{- $count := $c.count | default 12 -}}
+{{- with site.GetPage $secPath -}}
+{{- $sec := . -}}
+{{- with first $count .RegularPages.ByDate.Reverse }}
+<div class="home-row home-row-m2 container">
+  <div class="card">
+    {{ partial "components/section-head.html" (dict "title" $sec.Title "href" $sec.RelPermalink) }}
+    {{- /* news-cols：≥768px 把这条长列表拆成多列。不拆的话十来条会在一整行
+           的宽度里拉成一条又长又稀的细带子（见 components.css）。 */ -}}
+    <div class="news-cols">
+      {{ partial "components/news-list.html" (dict "pages" .) }}
+    </div>
+  </div>
+</div>
+{{- end }}
+{{- end }}

@@ -1,0 +1,1157 @@
+/* ==========================================================================
+ * components.css — 可复用组件
+ * --------------------------------------------------------------------------
+ * 页头 / 导航 / 页脚 / 板块标题 / 列表 / 轮播 / 页签 / 分页 / 表单 / 文章体
+ * 组件之间互不依赖，可以单独摘出来用。
+ * ========================================================================== */
+
+
+/* ==========================================================================
+ * 板块标题（partials/components/section-head.html）
+ * 旧站每个栏目标题都是一张烤了字的图 + <map> 热区，换名字必须重做图。
+ * ========================================================================== */
+.section-head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-3);
+  padding-bottom: var(--sp-2);
+  border-bottom: 1px solid var(--c-line);
+}
+
+.section-title {
+  position: relative;
+  padding-left: var(--sp-3);
+  font-size: var(--fs-md);
+  line-height: var(--lh-tight);
+  color: var(--c-primary-700);
+}
+
+/* 标题左侧的竖条，替代旧站的切图装饰 */
+.section-title::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 4px;
+  height: 1em;
+  transform: translateY(-50%);
+  background: var(--c-primary);
+  border-radius: var(--r-full);
+}
+
+.section-sub {
+  color: var(--c-ink-3);
+  font-size: var(--fs-xs);
+  font-weight: 400;
+}
+
+.section-more {
+  flex: none;
+  margin-left: auto;
+  color: var(--c-ink-3);
+  font-size: var(--fs-xs);
+  font-weight: 400;
+}
+
+.section-more:hover { color: var(--c-primary-600); }
+.section-more-arrow { margin-left: 2px; }
+
+@media (min-width: 768px) {
+  .section-title { font-size: var(--fs-lg); }
+  .section-more { font-size: var(--fs-sm); }
+}
+
+
+/* ==========================================================================
+ * 页头：顶部工具条 + 站名横幅
+ * ========================================================================== */
+.topbar {
+  background: var(--c-primary-900);
+  color: rgba(255, 255, 255, 0.7);
+  font-size: var(--fs-xs);
+}
+
+.topbar-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+  min-height: 34px;
+}
+
+.topbar-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-4);
+}
+
+.topbar a { color: rgba(255, 255, 255, 0.85); }
+.topbar a:hover { color: #fff; }
+
+/* 小屏优先保证右上角的常用链接，日期可以直接让位 */
+@media (max-width: 639px) {
+  .topbar-date { display: none; }
+  .topbar-inner { justify-content: flex-end; }
+}
+
+/*
+  触摸 / 窄屏：点击目标一律撑到 --tap（44px）。
+  ---------------------------------------------------------------------------
+  「设为首页 / 加入收藏」是桌面浏览器的老习惯，现代浏览器早已禁用脚本改主页
+  （theme.js 里只剩一个 alert 兜底），触屏上纯属噪音 —— 直接隐藏，
+  只保留 hugo.toml 里 [[params.topLinks]] 配的真实链接。
+  用 (hover: none) 而不是单纯断宽度：平板横屏够宽，但同样是手指在点。
+  section-head 用 align-items:baseline，撑高不会影响标题自身的对齐。
+*/
+@media (hover: none), (max-width: 639px) {
+  #set-homepage,
+  #add-favorite { display: none; }
+
+  .topbar a,
+  .section-more {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap);
+  }
+
+  /*
+    面包屑只保证 WCAG 2.5.8 (AA) 的 24px，不拉到 44px：
+    它是次要导航，同一目的地从主导航也能到达，撑到 44px 会把面包屑变成一条
+    明显的粗带子，得不偿失。间隔由 .breadcrumb 的 gap 提供，满足间距豁免。
+  */
+  .breadcrumb a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 24px;
+  }
+}
+
+/* 站名横幅：旧站是 1000×217 的带字切图，现在是纯文字块 */
+.banner {
+  background: linear-gradient(135deg,
+              var(--c-primary-700) 0%,
+              var(--c-primary-600) 55%,
+              var(--c-primary-500) 100%);
+}
+
+.banner-inner { padding-block: var(--sp-5); }
+
+.brand { display: block; color: #fff; }
+.brand:hover, .brand:focus { color: #fff; }
+
+.brand-name {
+  display: block;
+  font-size: var(--fs-xl);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  line-height: var(--lh-tight);
+}
+
+.brand-slogan {
+  display: block;
+  margin-top: var(--sp-1);
+  color: rgba(255, 255, 255, 0.78);
+  font-size: var(--fs-sm);
+}
+
+@media (min-width: 768px) {
+  .banner-inner { padding-block: var(--sp-7); }
+  .brand-name { font-size: var(--fs-3xl); }
+  .brand-slogan { font-size: var(--fs-base); }
+}
+
+
+/* ==========================================================================
+ * 主导航
+ * 移动优先：<1024px 折叠为汉堡菜单（theme.js 的 initNav），
+ * >=1024px 恢复水平排布 + hover 下拉（纯 CSS，无 JS）。
+ * 断点取 1024 而非 768：8 个一级栏目排开约需 720px。
+ * ========================================================================== */
+.main-nav {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: var(--c-primary);
+  border-bottom: 3px solid var(--c-accent);
+}
+
+.nav-inner {
+  display: flex;
+  align-items: center;
+}
+
+.nav-toggle {
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: var(--tap);
+  height: var(--tap);
+  padding-inline: 10px;
+  background: transparent;
+  border: 0;
+}
+
+.nav-toggle-bar {
+  display: block;
+  height: 2px;
+  background: #fff;
+  border-radius: 2px;
+  transition: transform var(--transition), opacity var(--transition);
+}
+
+.nav-toggle[aria-expanded="true"] .nav-toggle-bar:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.nav-toggle[aria-expanded="true"] .nav-toggle-bar:nth-child(2) { opacity: 0; }
+.nav-toggle[aria-expanded="true"] .nav-toggle-bar:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+.nav {
+  flex: 1;
+  min-width: 0;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.28s ease;
+}
+
+.nav.is-open {
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.nav-item { border-top: 1px solid rgba(255, 255, 255, 0.12); }
+
+.nav-row { display: flex; align-items: stretch; }
+
+.nav-link {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  min-height: var(--tap);
+  padding: var(--sp-3) var(--page-gutter);
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 600;
+}
+
+.nav-item.on > .nav-row > .nav-link { color: #fff; }
+
+/* 手风琴展开箭头（纯 CSS 画的 V 形） */
+.sub-toggle {
+  position: relative;
+  flex: none;
+  width: var(--tap);
+  background: transparent;
+  border: 0;
+}
+
+.sub-toggle::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid rgba(255, 255, 255, 0.8);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.8);
+  transform: rotate(45deg) translate(-2px, -2px);
+  transition: transform var(--transition);
+}
+
+.sub-toggle[aria-expanded="true"]::before { transform: rotate(-135deg) translate(-2px, -2px); }
+
+.sub {
+  max-height: 0;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.16);
+  transition: max-height 0.25s ease;
+}
+
+.nav-item.is-open > .sub { max-height: 400px; }
+
+.sub li a {
+  display: flex;
+  align-items: center;
+  min-height: var(--tap);
+  padding: var(--sp-2) var(--page-gutter) var(--sp-2) calc(var(--page-gutter) + var(--sp-5));
+  color: rgba(255, 255, 255, 0.8);
+  font-size: var(--fs-sm);
+}
+
+.sub li a:hover,
+.sub li a:focus { background: rgba(255, 255, 255, 0.08); color: #fff; }
+
+@media (min-width: 1024px) {
+  .nav-toggle { display: none; }
+
+  .nav {
+    display: flex;
+    flex-wrap: wrap;
+    max-height: none;
+    overflow: visible;
+  }
+
+  .nav-item { position: relative; border-top: 0; }
+  .nav-row { display: block; }
+
+  .nav-link {
+    justify-content: center;
+    height: var(--header-h);
+    min-height: 0;
+    padding-inline: var(--sp-4);
+  }
+
+  .nav-link:hover,
+  .nav-link:focus { background: var(--c-primary-600); }
+
+  .nav-item.on > .nav-row > .nav-link {
+    background: var(--c-primary-600);
+    box-shadow: inset 0 -3px 0 var(--c-accent);
+  }
+
+  .sub-toggle { display: none; }
+
+  .sub {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: 60;
+    min-width: 168px;
+    max-height: none;
+    overflow: visible;
+    background: var(--c-surface);
+    border-radius: 0 0 var(--r-md) var(--r-md);
+    box-shadow: var(--sh-2);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(8px);
+    transition: opacity var(--transition), transform var(--transition), visibility var(--transition);
+  }
+
+  .nav-item:hover > .sub,
+  .nav-item:focus-within > .sub {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+  }
+
+  .sub li a {
+    min-height: 0;
+    padding: var(--sp-3) var(--sp-4);
+    color: var(--c-ink-2);
+  }
+
+  .sub li a:hover,
+  .sub li a:focus {
+    background: var(--c-primary-50);
+    color: var(--c-primary-700);
+  }
+}
+
+
+/* ==========================================================================
+ * 页脚
+ * ========================================================================== */
+.member-strip {
+  padding-block: var(--sp-5);
+  background: var(--c-surface);
+  /* 页脚上方是友情链接带，同为 --c-surface 底色，中间不隔一刀会糊成一条。
+     友情链接自己有 3px 主色上边框，这条细线与之呼应。 */
+  border-top: 1px solid var(--c-line);
+}
+
+/* 无缝滚动容器：高度由 --marquee-h 控制（模板里按配置写成内联变量） */
+.marquee {
+  height: var(--marquee-h, 200px);
+  overflow: hidden;
+}
+
+.member-links {
+  display: grid;
+  gap: var(--sp-2);
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+}
+
+.member-links a {
+  display: flex;
+  align-items: center;
+  min-height: 36px;
+  padding: var(--sp-2) var(--sp-3);
+  background: var(--c-bg);
+  border: 1px solid var(--c-line);
+  border-radius: var(--r-sm);
+  color: var(--c-ink-2);
+  font-size: var(--fs-sm);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.member-links a:hover {
+  background: var(--c-primary-50);
+  border-color: var(--c-primary-200);
+  color: var(--c-primary-700);
+}
+
+
+/* ==========================================================================
+ * 会员 LOGO（partials/components/member-logo.html）
+ * 首页 LOGO 墙 / 名录卡片 / 会员详情页三处共用这一个框，
+ * 尺寸差异由各自的外层（.member-logo-wall 等）给，框本身只管「有图怎么放」。
+ * ========================================================================== */
+.member-logo {
+  display: block;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background: var(--c-bg);
+  border: 1px solid var(--c-line);
+  border-radius: var(--r-sm);
+}
+
+/* contain 而不是 cover：企业 LOGO 上多半带字，裁掉就成了另一张图。
+   内缩一圈留白，LOGO 才不至于顶到边框。 */
+.member-logo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: var(--sp-2);
+  object-fit: contain;
+}
+
+/* .media-ph 自带 min-height:96px，格子比它矮时会被裁掉一截（视觉上看不出来，
+   但会溢出容器）。这里归零，高度完全交给上面那个 aspect-ratio 框。 */
+.member-logo .media-ph {
+  min-height: 0;
+  border-radius: 0;
+}
+
+
+/* ==========================================================================
+ * 会员 LOGO 墙（首页整行，partials/home/members-wall.html）
+ * ========================================================================== */
+.member-wall {
+  display: grid;
+  gap: var(--sp-3);
+  /* auto-fill：墙上每格 LOGO 必须一样大，最后一行不满时留空轨，
+     而不是让剩下那几格被拉大（与名录页 .directory-grid 同理）。 */
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+}
+
+/* 手机上定死三列：auto-fill 在 375px 下只会排出两列，墙就不像墙了 */
+@media (max-width: 639px) {
+  .member-wall {
+    gap: var(--sp-2);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.member-wall-link {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  height: 100%;
+}
+
+.member-wall-name {
+  overflow: hidden;
+  color: var(--c-ink-2);
+  font-size: var(--fs-xs);
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.member-wall-link:hover .member-logo { border-color: var(--c-primary-200); }
+.member-wall-link:hover .member-wall-name { color: var(--c-primary-700); }
+.member-wall-link:hover .media-ph { background: var(--c-primary-100); }
+
+.footer-contact {
+  padding-block: var(--sp-6);
+  background: var(--c-primary-900);
+  color: rgba(255, 255, 255, 0.72);
+  font-size: var(--fs-sm);
+}
+
+.footer-contact-inner { display: grid; gap: var(--sp-5); }
+
+@media (min-width: 768px) {
+  .footer-contact-inner { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (min-width: 1024px) {
+  .footer-contact-inner { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+.footer-col p { margin-bottom: var(--sp-1); }
+
+.footer-org {
+  margin-bottom: var(--sp-2);
+  color: #fff;
+  font-size: var(--fs-md);
+  font-weight: 700;
+}
+
+.footer-contact a { color: rgba(255, 255, 255, 0.85); }
+.footer-contact a:hover { color: #fff; }
+
+.footer-bottom {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2) var(--sp-4);
+  margin-top: var(--sp-5);
+  padding-top: var(--sp-4);
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.55);
+  font-size: var(--fs-xs);
+}
+
+.footer-bottom p { margin: 0; }
+
+
+/* ==========================================================================
+ * 新闻列表（partials/components/news-list.html）
+ * ========================================================================== */
+.news-item {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-1);
+  padding-block: var(--sp-2);
+  border-bottom: 1px dashed var(--c-line);
+}
+
+.news-item:last-child { border-bottom: 0; }
+
+.news-item .dot { align-self: center; }
+
+.news-link {
+  flex: 1;
+  /* min-width:0 不能省：flex 子项默认 min-width:auto，
+     长标题会把整行撑破，进而把整个栅格顶出横向滚动条 */
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--c-ink);
+}
+
+.news-link:hover { color: var(--c-primary-600); }
+
+.news-item .date {
+  flex: none;
+  color: var(--c-ink-3);
+  font-size: var(--fs-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.news-item.is-new .dot { background: var(--c-accent); }
+.news-item.is-new .news-link { font-weight: 600; }
+
+/* 单行截断在窄屏会切得太早，这里放开换行 */
+@media (max-width: 639px) {
+  .news-item { flex-wrap: wrap; }
+  .news-link { white-space: normal; }
+}
+
+/* 宽屏把长列表拆成多列（首页的行业资讯 / 会员动态，见 partials/home/*.html）。
+   在一整行的宽度里排十来条，单列会被拉成一条又长又稀的细带子。
+   行间距给 0：条目自身已有 padding-block 与虚线分隔，再加 gap 会散架。 */
+.news-cols .news-list {
+  display: grid;
+  gap: 0 var(--gap);
+}
+
+@media (min-width: 768px) {
+  .news-cols .news-list { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
+}
+
+
+/* ==========================================================================
+ * 文章归档列表（栏目页）
+ * ========================================================================== */
+.archive-list { display: grid; gap: var(--sp-4); }
+
+.archive-item {
+  display: flex;
+  gap: var(--sp-3);
+  padding-bottom: var(--sp-4);
+  border-bottom: 1px solid var(--c-line);
+}
+
+.archive-item:last-child { padding-bottom: 0; border-bottom: 0; }
+
+.archive-item .thumb {
+  flex: none;
+  width: 180px;
+  overflow: hidden;
+  border-radius: var(--r-sm);
+}
+
+.archive-item .thumb img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+}
+
+.archive-item .meta { flex: 1; min-width: 0; }
+
+.archive-title { font-size: var(--fs-md); margin-bottom: var(--sp-2); }
+.archive-title a { color: var(--c-primary-700); }
+.archive-title a:hover { color: var(--c-primary-400); }
+
+.archive-item .summary {
+  margin-bottom: var(--sp-2);
+  color: var(--c-ink-2);
+  font-size: var(--fs-sm);
+}
+
+.archive-item .info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-3);
+  margin: 0;
+  color: var(--c-ink-3);
+  font-size: var(--fs-xs);
+}
+
+/* 窄屏改为上图下文 */
+@media (max-width: 639px) {
+  .archive-item { flex-direction: column; }
+  .archive-item .thumb { width: 100%; }
+}
+
+
+/* ==========================================================================
+ * 分页器
+ * ========================================================================== */
+.pagination {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  margin-top: var(--gap);
+  padding: var(--sp-3);
+  background: var(--c-surface);
+  border: 1px solid var(--c-line);
+  border-radius: var(--r-md);
+}
+
+.pagination a,
+.pagination span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--tap);
+  min-height: var(--tap);
+  padding-inline: var(--sp-2);
+  border: 1px solid var(--c-line);
+  border-radius: var(--r-sm);
+  font-size: var(--fs-sm);
+}
+
+.pagination a:hover {
+  border-color: var(--c-primary-400);
+  color: var(--c-primary-600);
+}
+
+.pagination .active {
+  background: var(--c-primary);
+  border-color: var(--c-primary);
+  color: #fff;
+  font-weight: 700;
+}
+
+.pagination .disabled {
+  background: var(--c-bg);
+  color: var(--c-ink-3);
+}
+
+.pagination-info {
+  border: 0 !important;
+  color: var(--c-ink-3);
+  font-size: var(--fs-xs) !important;
+}
+
+
+/* ==========================================================================
+ * 图片新闻轮播（theme.js 的 initCarousel）
+ * ========================================================================== */
+.sy_ban { position: relative; }
+
+.sy_ban_p {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border-radius: var(--r-sm);
+  background: var(--c-primary-50);
+}
+
+.sy_ban_item {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.45s ease, visibility 0.45s ease;
+}
+
+.sy_ban_item.on { opacity: 1; visibility: visible; }
+
+.sy_ban_item a {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.sy_ban_item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.slide-caption {
+  position: absolute;
+  inset: auto 0 0 0;
+  padding: var(--sp-6) var(--sp-3) var(--sp-2);
+  background: linear-gradient(to top, rgba(7, 26, 51, 0.85), transparent);
+  color: #fff;
+  font-size: var(--fs-sm);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sy_ban_x {
+  display: flex;
+  justify-content: center;
+  gap: var(--sp-2);
+  margin-top: var(--sp-3);
+}
+
+.sy_ban_dot {
+  width: 8px;
+  height: 8px;
+  font-size: 0;
+  color: transparent;
+  background: var(--c-primary-200);
+  border-radius: var(--r-full);
+  cursor: pointer;
+  transition: width var(--transition), background var(--transition);
+}
+
+.sy_ban_dot.on {
+  width: 20px;
+  background: var(--c-primary);
+}
+
+
+/* ==========================================================================
+ * 四页签（theme.js 的 initTabs）
+ * ========================================================================== */
+.tabs { padding: 0; }
+
+.tab-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-3) var(--sp-4);
+  border-bottom: 1px solid var(--c-line);
+}
+
+.tab-btn {
+  min-height: var(--tap);
+  padding: var(--sp-2) var(--sp-4);
+  background: var(--c-bg);
+  border: 1px solid var(--c-line);
+  border-radius: var(--r-full);
+  color: var(--c-ink-2);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  transition: background var(--transition), color var(--transition), border-color var(--transition);
+}
+
+.tab-btn:hover { border-color: var(--c-primary-200); color: var(--c-primary-600); }
+
+.tab-btn.on {
+  background: var(--c-primary);
+  border-color: var(--c-primary);
+  color: #fff;
+}
+
+.tab-more {
+  margin-left: auto;
+  color: var(--c-ink-3);
+  font-size: var(--fs-sm);
+}
+
+.tab-more:hover { color: var(--c-primary-600); }
+
+.tab-panels { padding: var(--sp-4); }
+
+.tab-panel { display: none; }
+
+.tab-panel.on {
+  display: grid;
+  gap: var(--sp-4);
+}
+
+@media (min-width: 768px) {
+  .tab-panel.on { grid-template-columns: minmax(0, 240px) minmax(0, 1fr); }
+}
+
+/* 图列不跟着右列列表一起拉高（grid 默认 stretch）。图与图注只到内容高度，
+   剩下那一段空白就露在图注下方，看着像没填满的洞。 */
+.tab-figure { align-self: start; }
+
+.tab-figure .frame {
+  display: block;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border-radius: var(--r-sm);
+  background: var(--c-primary-50);
+}
+
+.tab-figure .frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tab-figure .caption {
+  margin-top: var(--sp-2);
+  font-size: var(--fs-sm);
+  text-align: center;
+}
+
+
+/* ==========================================================================
+ * 面包屑
+ * --------------------------------------------------------------------------
+ * 原先这里还有一条 .page-banner（频道页蓝色横幅）。它与栏目页标题栏
+ * .panel-head 同样是蓝底白字、内容也一样，等于同一行标题印两遍，故删除；
+ * 横幅里的 h1 已移交给 .panel-head 承担（见 _default/list.html）。
+ * ========================================================================== */
+.breadcrumb {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-1);
+  width: 100%;
+  max-width: var(--page-max);
+  margin-inline: auto;
+  padding: var(--sp-3) var(--page-gutter);
+  color: var(--c-ink-3);
+  font-size: var(--fs-sm);
+}
+
+.breadcrumb a { color: var(--c-ink-3); }
+.breadcrumb a:hover { color: var(--c-primary-600); }
+.breadcrumb .sep { margin-inline: var(--sp-1); color: var(--c-primary-200); }
+
+
+/* ==========================================================================
+ * 侧栏组件：搜索框 / 快捷入口 / 合作机构
+ * ========================================================================== */
+.search-box { display: flex; gap: var(--sp-2); }
+
+.search-box input {
+  flex: 1;
+  min-width: 0;
+  height: var(--tap);
+  padding-inline: var(--sp-3);
+  background: var(--c-bg);
+  border: 1px solid var(--c-line);
+  border-radius: var(--r-sm);
+}
+
+.search-box input:focus {
+  background: #fff;
+  border-color: var(--c-primary-400);
+  outline: none;
+}
+
+/* 旧站搜索按钮是 index_r16_c39btn.gif + text-indent:-9999px，现在是纯 CSS */
+.search-box button {
+  flex: none;
+  min-height: var(--tap);
+  padding-inline: var(--sp-4);
+  background: var(--c-primary);
+  border: 0;
+  border-radius: var(--r-sm);
+  color: #fff;
+  font-weight: 600;
+  transition: background var(--transition);
+}
+
+.search-box button:hover { background: var(--c-primary-600); }
+
+.side-links {
+  display: grid;
+  gap: var(--sp-2);
+}
+
+.side-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--tap);
+  padding: var(--sp-2) var(--sp-4);
+  background: var(--c-surface);
+  border: 1px solid var(--c-line);
+  border-radius: var(--r-md);
+  color: var(--c-primary-700);
+  font-weight: 600;
+  text-align: center;
+}
+
+.side-link:hover {
+  background: var(--c-primary-50);
+  border-color: var(--c-primary-200);
+}
+
+.partner-body {
+  display: grid;
+  gap: var(--sp-2);
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+}
+
+.partner {
+  display: block;
+  overflow: hidden;
+  border: 1px solid var(--c-line);
+  border-radius: var(--r-sm);
+}
+
+.partner img {
+  display: block;
+  width: 100%;
+  object-fit: contain;
+}
+
+
+/* ==========================================================================
+ * 友情链接（首页底部）
+ * 旧站这里是 4 个 display:none 的 <select>，现在改为可见的链接块。
+ * ========================================================================== */
+.friendlinks {
+  margin-top: var(--gap);
+  padding-block: var(--sp-5);
+  background: var(--c-surface);
+  border-top: 3px solid var(--c-primary);
+}
+
+.friendlinks dl {
+  display: grid;
+  gap: var(--sp-2);
+  margin: 0;
+}
+
+@media (min-width: 768px) {
+  .friendlinks dl { grid-template-columns: 84px minmax(0, 1fr); }
+}
+
+.friendlinks dt {
+  color: var(--c-primary-700);
+  font-size: var(--fs-sm);
+  font-weight: 700;
+}
+
+.friendlinks dd {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2) var(--sp-4);
+  margin: 0;
+  font-size: var(--fs-sm);
+}
+
+.friendlinks dd a { color: var(--c-ink-2); }
+.friendlinks dd a:hover { color: var(--c-primary-600); }
+
+
+/* ==========================================================================
+ * 文章页
+ * ========================================================================== */
+.article-title {
+  margin-bottom: var(--sp-3);
+  font-size: var(--fs-xl);
+}
+
+@media (min-width: 768px) {
+  .article-title { font-size: var(--fs-2xl); }
+}
+
+.article-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2) var(--sp-4);
+  padding-bottom: var(--sp-3);
+  border-bottom: 1px solid var(--c-line);
+  color: var(--c-ink-3);
+  font-size: var(--fs-sm);
+}
+
+.article-figure {
+  margin: var(--sp-4) 0 0;
+  text-align: center;
+}
+
+.article-body {
+  padding-top: var(--sp-4);
+  /* 旧站正文用 12px + 宋体，行距很挤；这里放宽到 15px / 1.75 */
+  font-size: var(--fs-base);
+  line-height: var(--lh-loose);
+  overflow-wrap: break-word;
+}
+
+.article-body h2,
+.article-body h3,
+.article-body h4 {
+  margin: var(--sp-5) 0 var(--sp-3);
+  padding-left: var(--sp-3);
+  border-left: 3px solid var(--c-primary);
+}
+
+.article-body h2 { font-size: var(--fs-lg); }
+.article-body h3 { font-size: var(--fs-md); }
+
+.article-body p { margin-bottom: var(--sp-4); }
+
+.article-body ul,
+.article-body ol {
+  margin: 0 0 var(--sp-4);
+  padding-left: 1.6em;
+  list-style: revert;
+}
+
+.article-body li { margin-bottom: var(--sp-1); }
+
+.article-body img {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--r-sm);
+}
+
+/* 只有「独占一段」的图片才当块级居中。
+   ⚠ 不能笼统地给 .article-body img 加 display:block —— 句中的行内图
+   （……详见下图 ![图](x.jpg) 所示……）会被强行断行，把一句话撕成两半。
+   上面那条 :only-child 是给「直接粘 HTML <img>」的兜底。 */
+.article-body p > img:only-child,
+.md-figure img {
+  display: block;
+  margin-inline: auto;
+}
+
+/* ---- Markdown 正文插图（layouts/_default/_markup/render-image.html） ----
+   版式由 Markdown title 位的 layout= 关键字决定，后台「正文插图」组件自动写入。
+   钩子只在图片独占一段（.IsBlock）时输出 <figure>，夹在句中的图仍是裸 <img>。 */
+.md-figure { margin: var(--sp-5) 0; }
+
+.md-figure figcaption {
+  margin-top: var(--sp-2);
+  color: var(--c-ink-3);
+  font-size: var(--fs-sm);
+  line-height: var(--lh-base);
+  text-align: center;
+}
+
+/* 宽图：向左负边距吃掉 .panel-body 的 1rem 内边距（base.css:211），做成卡片内出血。
+   溢出由 .panel 的 overflow:hidden（base.css:200）裁掉，所以不会出现横向滚动条。 */
+.md-figure--wide { margin-inline: calc(var(--sp-4) * -1); }
+
+.md-figure--wide img { border-radius: 0; }
+
+/* 左浮 / 右浮：图文混排。只在 >=768px 生效 —— 窄屏浮图会把正文挤成一条。 */
+@media (min-width: 768px) {
+  .md-figure--left,
+  .md-figure--right { max-width: 42%; }
+
+  .md-figure--left {
+    float: left;
+    margin: var(--sp-2) var(--sp-4) var(--sp-3) 0;
+  }
+
+  .md-figure--right {
+    float: right;
+    margin: var(--sp-2) 0 var(--sp-3) var(--sp-4);
+  }
+}
+
+/* 浮动图后面的标题不要被压住；正文末尾清掉浮动残留，否则下面的页脚会被顶歪。 */
+.article-body > h2,
+.article-body > h3 { clear: both; }
+
+.article-body::after {
+  content: "";
+  display: block;
+  clear: both;
+}
+
+.article-body blockquote {
+  margin: var(--sp-4) 0;
+  padding: var(--sp-3) var(--sp-4);
+  background: var(--c-primary-50);
+  border-left: 3px solid var(--c-primary-200);
+  color: var(--c-ink-2);
+}
+
+.article-body table {
+  margin-bottom: var(--sp-4);
+  font-size: var(--fs-sm);
+}
+
+.article-body th,
+.article-body td {
+  padding: var(--sp-2) var(--sp-3);
+  border: 1px solid var(--c-line);
+}
+
+.article-body th { background: var(--c-primary-50); }
+
+.article-body pre {
+  overflow-x: auto;
+  margin-bottom: var(--sp-4);
+  padding: var(--sp-3);
+  background: var(--c-primary-900);
+  color: #e6edf6;
+  border-radius: var(--r-sm);
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+}
+
+.article-body :not(pre) > code {
+  padding: 2px 6px;
+  background: var(--c-primary-50);
+  color: var(--c-primary-700);
+  border-radius: var(--r-sm);
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+}
+
+.article-foot {
+  margin-top: var(--sp-5);
+  padding-top: var(--sp-4);
+  border-top: 1px solid var(--c-line);
+}
+
+.article-nav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  color: var(--c-ink-2);
+  font-size: var(--fs-sm);
+}
+
+.article-nav > span { min-width: 0; }
+
+@media (min-width: 768px) {
+  .article-nav {
+    flex-direction: row;
+    justify-content: space-between;
+    gap: var(--sp-4);
+  }
+  .article-nav .prev,
+  .article-nav .next { flex: 1; }
+  .article-nav .next { text-align: right; }
+}

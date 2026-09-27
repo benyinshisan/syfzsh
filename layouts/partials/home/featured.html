@@ -1,25 +1,32 @@
-{{- /* 图片新闻：轮播，取所有 featured = true 的文章 */ -}}
-{{- $count := site.Params.home.featuredCount | default 6 -}}
+{{- /*
+  图片新闻：轮播，取全站所有 featured = true 的文章
+  这是唯一跨栏目的板块，没有对应的栏目页可取标题，故标题来自
+  data/home.yaml 的 featured.title。
+*/ -}}
+{{- $cfg := hugo.Data.home | default dict -}}
+{{- $f := $cfg.featured | default dict -}}
+{{- $count := $f.count | default 6 -}}
+{{- $title := $f.title | default "图片新闻" -}}
 {{- $pages := first $count (where site.RegularPages "Params.featured" true).ByDate.Reverse -}}
 {{- with $pages }}
-<div class="featured-box">
-  <div class="box-head">
-    <img src="{{ "images/sypic_1.jpg" | relURL }}" width="342" height="50" alt="图片新闻">
-  </div>
+<div class="featured-box card">
+  {{ partial "components/section-head.html" (dict "title" $title) }}
   <div class="featured-body picnews">
     <div class="sy_ban" data-carousel data-interval="3000">
       <ul class="sy_ban_p">
         {{- range $i, $p := . }}
-        <li{{ if eq $i 0 }} class="on"{{ end }}>
+        <li class="sy_ban_item{{ if eq $i 0 }} on{{ end }}">
           <a href="{{ $p.RelPermalink }}" title="{{ $p.Title }}">
-            <img src="{{ (or $p.Params.image "images/sypic_1.jpg") | relURL }}" width="320" height="240" alt="{{ $p.Title }}">
-            <p>{{ $p.Title }}</p>
+            {{ partial "components/thumb.html" (dict "page" $p "loading" (cond (eq $i 0) "eager" "lazy")) }}
+            <span class="slide-caption">{{ $p.Title }}</span>
           </a>
         </li>
         {{- end }}
       </ul>
       <div class="sy_ban_x">
-        {{- range $i, $p := . }}<span{{ if eq $i 0 }} class="on"{{ end }}>{{ add $i 1 }}</span>{{ end }}
+        {{- range $i, $p := . }}
+        <span class="sy_ban_dot{{ if eq $i 0 }} on{{ end }}">{{ add $i 1 }}</span>
+        {{- end }}
       </div>
     </div>
   </div>

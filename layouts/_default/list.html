@@ -1,31 +1,89 @@
+{{- /*
+  栏目页
+  ---------------------------------------------------------------------------
+  两种形态，模板自动判别，不需要手工指定 type：
+    · 一级栏目（/news/ 这种有子栏目的）→ 先是子栏目入口，再把各子栏目的文章
+      汇总成一个列表分页
+    · 二级栏目（/news/notice/ 这种叶子栏目）→ 本栏目文章分页
+
+  一级栏目若不特殊处理，.Paginator.Pages 只会拿到子栏目自身（不是文章），
+  点进导航就会看到一个空页面。
+
+  ⚠ 一个页面只能有一个 paginator：.Paginator 与 .Paginate 共用同一份缓存，
+    先调谁就定死是谁的结果。所以下面的 .Paginator 只出现在叶子分支里 ——
+    一级栏目若先碰了 .Paginator，再 .Paginate 拿到的仍是那份「子栏目自身」的
+    缓存，汇总分页会静默失效（不报错，只是列表不对）。
+*/ -}}
 {{ define "main" }}
-{{ partial "components/page-banner.html" . }}
 {{ partial "components/breadcrumb.html" . }}
 
 <div class="inner-layout">
   <div class="inner-main">
     <div class="panel">
-      <div class="panel-head">{{ .Title }}</div>
+      {{- /* 页面主标题。原先是 page-banner 里的 h1，横幅删掉后由这里承担，
+             所以必须是 <h1> 而不是 div —— 否则栏目页会没有任何 h1。 */ -}}
+      <h1 class="panel-head">{{ .Title }}</h1>
       <div class="panel-body">
         {{- with .Description }}
-        <p class="section-desc">{{ . }}</p>
+        <p class="section-desc">{{ . | plainify }}</p>
         {{- end }}
 
-        {{- $pages := .Paginator.Pages }}
+        {{- with .Content }}
+        <div class="article-body">{{ . }}</div>
+        {{- end }}
+
+        {{- with .Sections }}
+        <ul class="subcol-grid">
+          {{- range .ByWeight }}
+          <li class="subcol-card">
+            <a class="subcol-link" href="{{ .RelPermalink }}">
+              <span class="subcol-title">{{ .LinkTitle | default .Title }}</span>
+              {{- with .Description }}
+              <span class="subcol-desc">{{ . | plainify | truncate 48 }}</span>
+              {{- end }}
+            </a>
+          </li>
+          {{- end }}
+        </ul>
+        {{- end }}
+
+        {{- $hasSubs := .Sections -}}
+        {{- $paginator := "" -}}
+        {{- if $hasSubs -}}
+          {{- $agg := .RegularPagesRecursive.ByDate.Reverse -}}
+          {{- /* 排除条目型栏目（hugo.toml 的 params.entrySections）：会员企业这类
+                「一条目一页」的内容不该混进上级栏目的文章流里。
+                这里按**栏目**排除而不是按 front matter 的某个字段 —— 字段靠人写全，
+                漏写一个就静默混进来，而栏目路径是结构性的、漏不掉。 */ -}}
+          {{- range site.Params.entrySections -}}
+            {{- with site.GetPage . -}}
+              {{- /* ⚠ complement 返回的是**最后一个**集合里、不在前面集合里的元素
+                    （complement A B = B 中不在 A 里的），所以待筛的 $agg 必须放最后。
+                    放反了不报错，只是列表内容整个换掉 —— 曾把 20 个会员页当文章
+                    混进了 /news/。 */ -}}
+              {{- $agg = complement .RegularPages $agg -}}
+            {{- end -}}
+          {{- end -}}
+          {{- $paginator = .Paginate $agg -}}
+        {{- else -}}
+          {{- $paginator = .Paginator -}}
+        {{- end -}}
+        {{- $pages := $paginator.Pages -}}
+
         {{- with $pages }}
         <ul class="archive-list">
           {{- range . }}
           {{- $p := . }}
-          <li>
+          <li class="archive-item">
             {{- with .Params.image }}
             <div class="thumb">
               <a href="{{ $p.RelPermalink }}" title="{{ $p.Title }}">
-                <img src="{{ . | relURL }}" alt="{{ $p.Title }}" loading="lazy">
+                {{ partial "components/img.html" (dict "src" . "alt" $p.Title "width" 600) }}
               </a>
             </div>
             {{- end }}
             <div class="meta">
-              <h2><a href="{{ .RelPermalink }}" title="{{ .Title }}">{{ .Title }}</a></h2>
+              <h2 class="archive-title"><a href="{{ .RelPermalink }}" title="{{ .Title }}">{{ .Title }}</a></h2>
               {{- $summary := .Params.summary | default .Summary | plainify | truncate 120 }}
               {{- if and $summary (ne $summary (.Title | plainify)) }}
               <p class="summary">{{ $summary }}</p>
@@ -33,7 +91,6 @@
               <p class="info">
                 <span class="date">{{ .Date.Format "2006-01-02" }}</span>
                 {{- with .CurrentSection }}{{ if ne .Title $.Title }}<span class="section">{{ .Title }}</span>{{ end }}{{ end }}
-                {{- with .Params.legacyUrl }}<span class="legacy"><a href="{{ . }}" target="_blank" rel="noopener">旧站原文</a></span>{{ end }}
               </p>
             </div>
           </li>
@@ -45,7 +102,8 @@
       </div>
     </div>
 
-    {{ partial "components/pagination.html" . }}
+    {{- /* 两种形态都有分页器：一级栏目现在是「汇总后分页」，不再是硬编码最新 N 条 */ -}}
+    {{ partial "components/pagination.html" (dict "paginator" $paginator) }}
   </div>
 
   <aside class="inner-side">

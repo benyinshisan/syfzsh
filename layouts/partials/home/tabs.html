@@ -1,48 +1,45 @@
 {{- /*
-  四页签切换区（旧站 news_div_1..4 + web.js SwapImage）
+  四页签切换区
+  ---------------------------------------------------------------------------
   页签定义见 hugo.toml 的 [[params.homeTabs]]，可自由增删改。
-  每个面板：左侧 1 张大图 + 图注，右侧 N 条列表；首条（带 image 的）作大图。
+  旧站页签是切图（menu_r1_c*.jpg）+ web.js 的 SwapImage 换图；
+  现在页签就是文字按钮，切换逻辑见 theme.js 的 initTabs()。
+
+  每个面板：左侧 1 张大图 + 图注，右侧 N 条列表；首篇文章作大图。
 */ -}}
 {{- $tabs := site.Params.homeTabs -}}
 {{- with $tabs }}
 {{- $activeIdx := 0 -}}
 {{- range $i, $t := . }}{{ if $t.active }}{{ $activeIdx = $i }}{{ end }}{{ end -}}
-<div class="tabs" data-tabs>
+<div class="tabs card" data-tabs>
 
-  <div class="tab-nav">
+  <div class="tab-nav" role="tablist">
     {{- range $i, $t := . }}
-    {{- $img := printf "images/%s" $t.image | relURL }}
-    {{- $imgOn := $img }}{{ with $t.imageActive }}{{ $imgOn = printf "images/%s" . | relURL }}{{ end }}
     {{- $href := "" }}{{ with site.GetPage $t.section }}{{ $href = .RelPermalink }}{{ end }}
-    <button type="button"
-            class="{{ if $t.active }}on{{ end }}"
+    <button type="button" role="tab" id="tab-btn-{{ $i }}"
+            class="tab-btn{{ if $t.active }} on{{ end }}"
             data-tab="{{ $i }}"
-            data-img="{{ $img }}"
-            data-img-active="{{ $imgOn }}"
             data-href="{{ $href }}"
-            title="{{ $t.label }}">
-      <img src="{{ if $t.active }}{{ $imgOn }}{{ else }}{{ $img }}{{ end }}"
-           width="{{ $t.width | default 85 }}" height="23" alt="{{ $t.label }}">
-    </button>
+            aria-selected="{{ if $t.active }}true{{ else }}false{{ end }}"
+            aria-controls="tab-panel-{{ $i }}">{{ $t.label }}</button>
     {{- end }}
     {{- $activeTab := index . $activeIdx }}
     {{- $moreHref := "" }}{{ with site.GetPage $activeTab.section }}{{ $moreHref = .RelPermalink }}{{ end }}
-    <a class="tab-more" href="{{ $moreHref }}">&gt;&gt;更多</a>
+    <a class="tab-more" href="{{ $moreHref }}">更多<span class="section-more-arrow" aria-hidden="true">›</span></a>
   </div>
 
   <div class="tab-panels">
     {{- range $i, $t := . }}
     {{- $pages := slice }}
     {{- with site.GetPage $t.section }}{{ $pages = .RegularPages.ByDate.Reverse }}{{ end }}
-    <div class="tab-panel{{ if $t.active }} on{{ end }}" data-tab-panel="{{ $i }}">
+    <div class="tab-panel{{ if $t.active }} on{{ end }}" data-tab-panel="{{ $i }}"
+         id="tab-panel-{{ $i }}" role="tabpanel" aria-labelledby="tab-btn-{{ $i }}">
       {{- with $pages }}
       {{- $figure := index . 0 }}
       <div class="tab-figure">
-        <div class="frame">
-          <a href="{{ $figure.RelPermalink }}" title="{{ $figure.Title }}">
-            <img src="{{ (or $figure.Params.image "images/sypic_1.jpg") | relURL }}" width="224" height="151" alt="{{ $figure.Title }}">
-          </a>
-        </div>
+        <a class="frame" href="{{ $figure.RelPermalink }}" title="{{ $figure.Title }}">
+          {{ partial "components/thumb.html" (dict "page" $figure) }}
+        </a>
         <div class="caption">
           <a href="{{ $figure.RelPermalink }}" title="{{ $figure.Title }}">{{ $figure.Title | truncate 34 }}</a>
         </div>

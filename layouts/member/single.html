@@ -1,0 +1,83 @@
+{{- /*
+  会员单位详情页
+  ---------------------------------------------------------------------------
+  命中方式：content/members/directory/*.md 的 front matter 里写 type: member，
+  Hugo 的布局查找会优先用 layouts/member/single.html（type 优先于 section）。
+  ⚠ 会员页若看不到 LOGO / 联系信息，先检查该文件的 type 字段是否丢了 ——
+    丢了会静默退回 layouts/_default/single.html，外观变了但不报错。
+
+  所有企业字段都是可选的：没填就不渲染那一行，20 个占位会员不填任何字段
+  也不会出现「单位类型：」这样的空标签。
+*/ -}}
+{{ define "main" }}
+{{ partial "components/breadcrumb.html" . }}
+
+<div class="inner-layout">
+  <div class="inner-main">
+    <article class="panel">
+      <div class="panel-body">
+
+        <header class="member-head">
+          <div class="member-logo">
+            {{ partial "components/member-logo.html" (dict "page" .) }}
+          </div>
+          <div class="member-head-main">
+            <h1 class="article-title">{{ .Title }}</h1>
+            {{- with .Params.summary }}<p class="member-summary">{{ . }}</p>{{ end }}
+
+            <dl class="member-facts">
+              {{- with .Params.industry }}<dt>单位类型</dt><dd>{{ . }}</dd>{{ end }}
+              {{- with .Params.website }}
+              <dt>企业官网</dt>
+              <dd><a href="{{ . }}" target="_blank" rel="noopener">{{ . }}</a></dd>
+              {{- end }}
+              {{- with .Params.contact }}<dt>联系人</dt><dd>{{ . }}</dd>{{ end }}
+              {{- with .Params.phone }}<dt>联系电话</dt><dd>{{ . }}</dd>{{ end }}
+              {{- with .Params.address }}<dt>单位地址</dt><dd>{{ . }}</dd>{{ end }}
+            </dl>
+          </div>
+        </header>
+
+        <div class="article-body{{ with .Params.bodyClass }} {{ . }}{{ end }}">
+          {{ .Content }}
+        </div>
+
+        {{- /* 三个图片分区。字段没填就整块不输出，所以空着也不会留下空标题。
+               ⚠ 不要把它们挪到上面的 member-head（页头 LOGO + 联系信息）里 ——
+                 那会把「单位抬头」挤散。 */ -}}
+        {{- with .Params.photosEnv }}
+        {{ partial "components/photo-grid.html" (dict "title" "企业环境 / 门店实拍" "items" .) }}
+        {{- end }}
+        {{- with .Params.photosProduct }}
+        {{ partial "components/photo-grid.html" (dict "title" "产品 / 案例图" "items" .) }}
+        {{- end }}
+        {{- with .Params.photosHonor }}
+        {{ partial "components/photo-grid.html" (dict "title" "资质 / 荣誉" "items" .) }}
+        {{- end }}
+
+        <footer class="article-foot">
+          {{- /* 名录页的标题与网址写在 hugo.toml 之外的固定位置，这里用 site.GetPage 取，避免两处写死 */ -}}
+          {{- with site.GetPage "/members/directory" }}
+          <p class="member-back"><a href="{{ .RelPermalink }}">← 返回{{ .LinkTitle | default .Title }}</a></p>
+          {{- end }}
+          <nav class="article-nav" aria-label="会员单位切换">
+            <span class="prev">
+              {{- with .PrevInSection }}上一个：<a href="{{ .RelPermalink }}" title="{{ .Title }}">{{ .Title | truncate 30 }}</a>
+              {{- else }}上一个：没有了{{ end }}
+            </span>
+            <span class="next">
+              {{- with .NextInSection }}下一个：<a href="{{ .RelPermalink }}" title="{{ .Title }}">{{ .Title | truncate 30 }}</a>
+              {{- else }}下一个：没有了{{ end }}
+            </span>
+          </nav>
+        </footer>
+
+      </div>
+    </article>
+  </div>
+
+  <aside class="inner-side">
+    {{ partial "components/sidebar.html" . }}
+  </aside>
+</div>
+{{ end }}

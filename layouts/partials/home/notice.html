@@ -1,34 +1,28 @@
-{{- /* 通知公告：无缝向上滚动（旧站 #demo9 的 setInterval 滚动） */ -}}
-{{- $secPath := site.Params.home.noticeSection | default "news/notice" -}}
+{{- /* 通知公告：列表无缝向上滚动（滚动逻辑见 theme.js 的 initMarquee）；参数见 data/home.yaml */ -}}
+{{- $cfg := hugo.Data.home | default dict -}}
+{{- $c := $cfg.notice | default dict -}}
+{{- $secPath := $c.section | default "news/notice" -}}
 {{- with site.GetPage $secPath -}}
-{{- $count := site.Params.home.noticeCount | default 10 -}}
+{{- $count := $c.count | default 10 -}}
 {{- $pages := first $count .RegularPages.ByDate.Reverse -}}
-{{- $h := site.Params.home.noticeMarqueeHeight | default 290 -}}
-<div class="side-card notice-card">
-  <div class="box-head">
-    <img src="{{ "images/index_r1_c37.jpg" | relURL }}" width="253" height="30" usemap="#map-notice" alt="{{ .Title }}">
-    <map name="map-notice">
-      <area href="{{ .RelPermalink }}" shape="rect" coords="202,5,241,26" alt="更多">
-    </map>
-  </div>
-  <img src="{{ "images/index_r4_c37.jpg" | relURL }}" width="253" height="4" alt="">
-  <div class="notice-body" style="height:{{ $h }}px">
-    <div class="notice-scroll" style="height:{{ $h }}px"
-         data-marquee data-speed="90" data-step="1" data-pause="2500" data-gap="16">
-      {{- with $pages }}
-      <ul class="notice-list">
-        {{- range . }}
-        <li>
-          <i class="dot"></i>
-          <a href="{{ .RelPermalink }}" title="{{ .Title }}">{{ .Title }}</a>
-        </li>
-        {{- end }}
-      </ul>
-      {{- else }}
-      <p class="empty-tip">暂无公告</p>
+{{- $h := $c.marqueeHeight | default 290 -}}
+<div class="side-card card notice-card">
+  {{ partial "components/section-head.html" (dict "title" .Title "href" .RelPermalink) }}
+
+  <div class="marquee notice-marquee" style="--marquee-h: {{ $h }}px"
+       data-marquee data-speed="90" data-step="1" data-pause="2500" data-gap="16">
+    {{- with $pages }}
+    <ul class="notice-list">
+      {{- range . }}
+      <li>
+        <i class="dot" aria-hidden="true"></i>
+        <a href="{{ .RelPermalink }}" title="{{ .Title }}">{{ .Title }}</a>
+      </li>
       {{- end }}
-    </div>
+    </ul>
+    {{- else }}
+    <p class="empty-tip">暂无公告</p>
+    {{- end }}
   </div>
-  <img src="{{ "images/index_r14_c37.jpg" | relURL }}" width="253" height="7" alt="">
 </div>
 {{- end }}

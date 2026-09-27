@@ -1,0 +1,41 @@
+/* ==========================================================================
+ *  后台左侧栏的分组标题与缩进
+ *
+ *  ⚠ 本文件由 scripts/gen-cms-config.mjs 生成，请勿手工编辑。
+ *    改分组请改生成器的 sections 表，然后跑：
+ *        node scripts/gen-cms-config.mjs
+ *
+ *  为什么是 CSS：Decap 的侧栏是扁平列表，且它的 nested 折叠功能会把子栏
+ *  显示成文章标题（详见生成器里 sidebarGroupsCss() 上方的说明）。
+ *  这里只加缩进和一个 ::before 组标题，完全不碰 DOM。
+ *
+ *  组标题是 <li> 上的 ::before，不在 <a> 里 —— 所以它不可点，也不影响跳转。
+ *  用 :has() 选择器定位（Chrome/Edge 105+、Safari 15.4+、Firefox 121+）。
+ *  不支持 :has() 的老浏览器只会少掉组标题和缩进，链接照常工作。
+ * ========================================================================== */
+
+/* 组标题：每个分组第一条前面插一行组名 */
+li:has(> a[data-testid="news-notice"])::before,
+li:has(> a[data-testid="members-directory"])::before {
+  display: block;
+  margin: 16px 20px 2px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: #8a93a1;
+}
+
+li:has(> a[data-testid="news-notice"])::before { content: "新闻中心"; }
+li:has(> a[data-testid="members-directory"])::before { content: "会员天地"; }
+
+/* 组内条目左缩进，做出「子栏」的层次 */
+a[data-testid="news-notice"],
+a[data-testid="news-association"],
+a[data-testid="news-industry"],
+a[data-testid="news-media"],
+a[data-testid="members-directory"],
+a[data-testid="members-dynamics"],
+a[data-testid="members-services"],
+a[data-testid="members-order"] {
+  padding-left: 34px !important;
+}

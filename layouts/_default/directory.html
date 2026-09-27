@@ -1,29 +1,53 @@
-{{- /* 会员名录：来自 data/members.yaml（旧站首页底部滚动条的完整名单） */ -}}
+{{- /*
+  会员名录（栏目页）
+  ---------------------------------------------------------------------------
+  数据源是**本栏目下的会员内容页**（content/members/directory/<slug>.md），
+  不再是 data/members.yaml —— 数据文件不产生页面，会员就拿不到独立网址。
+  新增会员：CMS「会员天地 → 会员单位」新建，或跑
+            node scripts/import-members.mjs 批量导入一份名单。
+
+  ⚠ 筛选由 theme.js 的 initFilter 驱动，它有两个写死的约定，改版式时别破坏：
+    1) 条目必须是 <li>（initFilter 里是 $$('li', list)）；
+    2) 空状态元素的 id 必须是 member-empty。
+    守住这两点，增删卡片里的内容不需要动任何 JS。搜索匹配的是整个 <li> 的
+    文本，所以单位类型与简介也会被搜到 —— 这是有意的。
+*/ -}}
 {{ define "main" }}
-{{ partial "components/page-banner.html" . }}
 {{ partial "components/breadcrumb.html" . }}
 
-{{- $members := site.Data.members.members | default slice }}
+{{- /* 顺序由后台「会员天地 → 会员排序」控制，与首页 LOGO 墙、页脚名录共用一份 */ -}}
+{{- $members := partial "components/member-pages.html" . }}
 <div class="inner-layout">
   <div class="inner-main">
     <div class="panel">
-      <div class="panel-head">会员名录（共 {{ len $members }} 家）</div>
+      <h1 class="panel-head">会员名录（共 {{ len $members }} 家）</h1>
       <div class="panel-body">
-        <form class="search-form" onsubmit="return false">
+        <form class="search-form search-form-sm" role="search" onsubmit="return false">
           <label class="sr-only" for="member-filter">按名称筛选</label>
           <input type="text" id="member-filter" data-filter="#member-list li"
-                 placeholder="输入单位名称关键字筛选…" autocomplete="off">
+                 placeholder="输入单位名称、行业关键字筛选…" autocomplete="off">
         </form>
 
         {{- with $members }}
-        <ul class="directory-list" id="member-list">
+        <ul class="directory-grid" id="member-list">
           {{- range . }}
-          <li><span title="{{ . }}">{{ . }}</span></li>
+          <li class="member-card">
+            <a class="member-card-link" href="{{ .RelPermalink }}" title="{{ .Title }}">
+              <span class="member-card-logo">{{ partial "components/member-logo.html" (dict "page" .) }}</span>
+              <span class="member-card-name">{{ .LinkTitle | default .Title }}</span>
+              {{- with .Params.industry }}<span class="member-card-industry">{{ . }}</span>{{ end }}
+              {{- $s := .Params.summary | default "" | plainify | truncate 40 }}
+              {{- if $s }}<span class="member-card-summary">{{ $s }}</span>{{ end }}
+            </a>
+          </li>
           {{- end }}
         </ul>
         <p class="empty-tip" id="member-empty" style="display:none">没有匹配的会员单位。</p>
         {{- else }}
-        <p class="empty-tip">data/members.yaml 为空，请先运行 scripts/import-legacy.py 导入。</p>
+        <p class="empty-tip">
+          本栏目下还没有会员页。请在 CMS 的「会员天地 → 会员单位」新建，
+          或运行 <code>node scripts/import-members.mjs</code> 批量导入一份名单。
+        </p>
         {{- end }}
 
         {{- with .Content }}<div class="article-body">{{ . }}</div>{{ end }}

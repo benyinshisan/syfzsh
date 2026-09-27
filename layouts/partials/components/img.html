@@ -1,0 +1,66 @@
+{{- /*
+  统一图片输出 —— 全站的 <img> 都应该从这里出
+  ---------------------------------------------------------------------------
+  好处有二：
+
+  1. 图片放在 assets/uploads/ 里时，Hugo 会先缩放、转成 WebP 再发出去。
+     商会同事用手机直拍的照片动辄 5–10MB，原样砸给访客既慢又费流量。
+  2. 输出的 <img> 带 width/height。浏览器能提前按比例占好位置，图片加载完成
+     时页面不会「跳一下」（CLS）。静态目录里的图片拿不到这两个值。
+
+  参数（dict）
+  ---------------------------------------------------------------------------
+    src      必填，图片路径，如 /uploads/news/xxx.jpg。前导斜杠可有可无；
+             也可以直接给 http(s) 外链（外链不会被处理，原样输出）。
+    alt      选填，但正文图强烈建议给 —— 它同时是图注和读屏软件念的内容。
+    title    选填，鼠标悬停提示。
+    width    选填，缩放后的最大宽度（像素），默认 1200。传 0 表示只转格式不缩放。
+             ⚠ 这是「最大」宽度：比它小的图不会被放大，只转格式。
+    class    选填，附加在 <img> 上的 class。
+    loading  选填，默认 "lazy"。首屏就会看到的图（轮播、文章头图）传 "eager"，
+             否则浏览器可能因为图还没加载完而让首屏空一块。
+
+  为什么能安全地混用两种目录
+  ---------------------------------------------------------------------------
+  resources.Get 只认 assets/ 里的文件。拿不到就退回普通 <img src>，也就是：
+  老图继续留在 static/uploads/ 也照样显示，只是没有压缩和宽高。
+  所以图片可以逐张、逐栏目从 static/ 搬到 assets/，不会因为漏搬而破图。
+*/ -}}
+{{- $src := .src | default "" -}}
+{{- $alt := .alt | default "" -}}
+{{- $title := .title | default "" -}}
+{{- $loading := .loading | default "lazy" -}}
+{{- $class := .class | default "" -}}
+{{- $max := .width | default 1200 -}}
+
+{{- /* 外链不做任何处理，也不去 assets 里找 */ -}}
+{{- $external := or (hasPrefix $src "http://") (hasPrefix $src "https://") (hasPrefix $src "//") -}}
+
+{{- /* 只有位图能被缩放/转码。刻意不含 gif：动图转 WebP 会丢掉动画。
+       也不含 svg：它是矢量图，没有像素宽度，缩放无意义。 */ -}}
+{{- $res := "" -}}
+{{- if not $external -}}
+  {{- $res = resources.Get (strings.TrimPrefix "/" $src) -}}
+{{- end -}}
+{{- $processable := false -}}
+{{- with $res -}}
+  {{- if in (slice "jpeg" "png" "webp" "bmp" "tiff") .MediaType.SubType -}}
+    {{- $processable = true -}}
+  {{- end -}}
+{{- end -}}
+
+{{- if $processable -}}
+  {{- $img := $res -}}
+  {{- if and (gt $max 0) (gt $res.Width $max) -}}
+    {{- $img = $res.Resize (printf "%dx webp q82" $max) -}}
+  {{- else -}}
+    {{- $img = $res.Process "webp q82" -}}
+  {{- end -}}
+  <img src="{{ $img.RelPermalink }}" width="{{ $img.Width }}" height="{{ $img.Height }}"
+    alt="{{ $alt }}"{{ with $title }} title="{{ . }}"{{ end }}
+    loading="{{ $loading }}" decoding="async"{{ with $class }} class="{{ . }}"{{ end }}>
+{{- else -}}
+  <img src="{{ if $external }}{{ $src }}{{ else }}{{ $src | relURL }}{{ end }}"
+    alt="{{ $alt }}"{{ with $title }} title="{{ . }}"{{ end }}
+    loading="{{ $loading }}" decoding="async"{{ with $class }} class="{{ . }}"{{ end }}>
+{{- end -}}

@@ -18,9 +18,9 @@
 {{- $threshold := $newest.AddDate 0 0 (int (mul -1 $newDays)) -}}
 <ul class="news-list">
   {{- range . }}
-  <li{{ if and (gt $newDays 0) (.Date.After $threshold) }} class="is-new"{{ end }}>
-    <i class="dot"></i>
-    <a href="{{ .RelPermalink }}" title="{{ .Title }}">{{ .Title }}</a>
+  <li class="news-item{{ if and (gt $newDays 0) (.Date.After $threshold) }} is-new{{ end }}">
+    <i class="dot" aria-hidden="true"></i>
+    <a class="news-link" href="{{ .RelPermalink }}" title="{{ .Title }}">{{ .Title }}</a>
     {{- if $withDate }}<span class="date">[{{ .Date.Format "01-02" }}]</span>{{ end }}
   </li>
   {{- end }}

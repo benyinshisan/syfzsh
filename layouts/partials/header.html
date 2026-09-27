@@ -1,8 +1,8 @@
 <header class="site-header">
 
-  {{- /* ---------- 顶部工具条：日期 + 设为主页 / 加入收藏 / 联系我们 ---------- */ -}}
+  {{- /* ---------- 顶部工具条：日期 + 设为主页 / 加入收藏 ---------- */ -}}
   <div class="topbar">
-    <div class="topbar-inner">
+    <div class="topbar-inner container">
       <div class="topbar-date">今天是：<span id="today-date">—</span></div>
       <div class="topbar-links">
         <a href="javascript:void(0);" id="set-homepage">设为首页</a>
@@ -14,14 +14,21 @@
     </div>
   </div>
 
-  {{- /* ---------- 站点横幅 ---------- */ -}}
+  {{- /*
+    站名横幅
+    旧站这里是一张 1000×217 的带字切图（images/top2.jpg），换名字就得重做图。
+    现在改为纯文字块，站名与 slogan 都来自 hugo.toml。
+  */ -}}
   <div class="banner">
-    <a href="{{ "/" | relURL }}" title="{{ site.Title }}">
-      <img src="{{ "images/top2.jpg" | relURL }}" width="1000" height="217" alt="{{ site.Title }}">
-    </a>
+    <div class="banner-inner container">
+      <a class="brand" href="{{ "/" | relURL }}" title="{{ site.Title }}">
+        <span class="brand-name">{{ site.Params.siteName | default site.Title }}</span>
+        {{- with site.Params.slogan }}<span class="brand-slogan">{{ . }}</span>{{ end }}
+      </a>
+    </div>
   </div>
 
-  {{- /* ---------- 主导航 ---------- */ -}}
+  {{- /* ---------- 主导航（含移动端汉堡按钮，见 nav.html） ---------- */ -}}
   {{ partial "nav.html" . }}
 
 </header>

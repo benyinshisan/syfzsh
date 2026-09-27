@@ -1,0 +1,456 @@
+/* ==========================================================================
+ * pages.css — 页面级布局
+ * --------------------------------------------------------------------------
+ * 只放「某个页面才成立」的版式：首页栅格、内页两栏、名录页、搜索页、404。
+ * 组件样式在 components.css，这里只负责把它们摆到位置上。
+ *
+ * 全部栅格都用 minmax(0, 1fr) 而非 1fr —— 从固定 px 改 Grid 时，
+ * 1fr 的最小尺寸是 auto，内容一宽就把栅格撑破，出现横向滚动条。
+ * ========================================================================== */
+
+
+/* ==========================================================================
+ * 首页
+ * 行一：图片新闻 + 商会动态 | 通知公告
+ * 行 m1：会员 LOGO 墙（整行）
+ * 行 m2：会员动态（整行，宽屏多列）
+ * 行二：行业资讯 + 四页签 | 搜索 / 快捷入口 / 合作机构
+ *
+ * ⚠ 行一左右两列底边对齐，靠的是「右栏卡片撑满列高 + 滚动区吃掉剩余高度」，
+ *   不是两边各自定高 —— 见下面 @media (min-width:1024px) 里那三条规则。
+ *   左列高度是流体的（图片轮播 4:3 随视口变），任何写死的右侧高度都只会在
+ *   某一个视口宽度下恰好对齐。
+ * ========================================================================== */
+.site-main { padding-block: var(--gap); }
+
+.home-row { margin-bottom: var(--gap); }
+
+.col-a-main,
+.col-b-main {
+  display: grid;
+  gap: var(--gap);
+  align-content: start;
+}
+
+.col-a-side,
+.col-b-side {
+  display: grid;
+  gap: var(--gap);
+  align-content: start;
+}
+
+/* 侧栏里的第一个卡片不再需要额外上边距 */
+.col-a-side > *,
+.col-b-side > * { margin: 0; }
+
+@media (min-width: 1024px) {
+  .home-row-a,
+  .home-row-b {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) var(--side-w);
+    /* 这里**不写** align-items: start：那会让右栏回到内容高度、底边错开，
+       而拉伸（grid 默认值）正是行一两列对齐的前提。 */
+  }
+
+  /* 行一左半边再切一刀：图片新闻 | 商会动态。
+     1.15fr : 1fr —— 纯文字的商会动态比图片轮播还宽是权重倒挂。 */
+  .col-a-main { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); }
+
+  /* 右栏只有一张卡，让它独占的那一行铺满列高；align-content 必须同时改，
+     否则上面的 start 会把这唯一一行压回内容高度，拉伸就白做了。 */
+  .col-a-side {
+    grid-template-rows: minmax(0, 1fr);
+    align-content: stretch;
+  }
+
+  .col-a-side > .card {
+    display: flex;
+    flex-direction: column;
+    /* 左列最矮也高于这个值；留着是为了窄栏时不至于把通知公告压成一条缝 */
+    min-height: 260px;
+  }
+
+  /* 通知公告的滚动区吃掉卡片剩余高度。
+     flex-basis 必须是 0 而不是 auto：basis:auto 会让滚动区的固有高度反过来
+     参与决定行高，形成「行高 ↔ 滚动区高度」的循环依赖；basis:0 让它对固有
+     高度的贡献为 0，行高就完全由左列（内容可预测）决定。
+     height:auto 覆盖 components.css 里 .marquee 的固定高度 —— 但那边**不能删**：
+     <1024px 走单列堆叠，没有可参照的拉伸高度，仍要用 --marquee-h 兜底。
+     滚动判定（theme.js initMarquee 的 unit <= root.clientHeight）读的是布局算出
+     的确定高度，不受影响。
+     ⚠ 占位期通知公告只有 3 条，底部会留白；真实内容（noticeCount = 10）填满后
+       即消失。别为了消这块白把 height 写死 —— 那等于把两列底边重新错开。 */
+  .col-a-side .marquee {
+    flex: 1 1 0;
+    min-height: 0;
+    height: auto;
+  }
+}
+
+/* <1024px 单列堆叠时按 DOM 顺序排，通知公告会被压到图片新闻、商会动态之后。
+   通知公告时效性最强，用 order 提到最前。纯 CSS，不动 DOM ——
+   DOM 顺序保持「内容优先」，与读屏和打印的顺序一致。 */
+@media (max-width: 1023px) {
+  .home-row-a {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .col-a-side { order: -1; }
+}
+
+/* 首页正文（content/_index.md），多数站点留空，留空时模板不会渲染 */
+.home-content { margin-bottom: var(--gap); }
+.home-content > * { max-width: 900px; }
+
+/* 首页各版块卡片的间距由父栅格的 gap 负责，这里不再叠加 margin */
+.featured-box,
+.headline-box,
+.notice-card,
+.tabs { margin: 0; }
+
+
+/* ==========================================================================
+ * 内页两栏（栏目页 / 文章页 / 搜索页 / 名录页）
+ * ========================================================================== */
+.inner-layout {
+  display: grid;
+  gap: var(--gap);
+  align-items: start;
+  width: 100%;
+  max-width: var(--page-max);
+  margin-inline: auto;
+  padding: var(--gap) var(--page-gutter);
+}
+
+.inner-main { min-width: 0; }
+
+.inner-side {
+  display: grid;
+  gap: var(--gap);
+  align-content: start;
+  min-width: 0;
+}
+
+@media (min-width: 1024px) {
+  .inner-layout { grid-template-columns: minmax(0, 1fr) var(--side-w); }
+}
+
+/* 栏目页顶部的栏目简介 */
+.section-desc {
+  margin-bottom: var(--sp-4);
+  padding: var(--sp-2) var(--sp-3);
+  background: var(--c-primary-50);
+  border-radius: var(--r-sm);
+  color: var(--c-ink-2);
+  font-size: var(--fs-sm);
+}
+
+/* 一级栏目的子栏目入口卡片 */
+.subcol-grid {
+  display: grid;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-4);
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+}
+
+.subcol-link {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+  height: 100%;
+  padding: var(--sp-3) var(--sp-4);
+  background: var(--c-bg);
+  border: 1px solid var(--c-line);
+  border-radius: var(--r-md);
+  transition: background var(--transition), border-color var(--transition);
+}
+
+.subcol-link:hover {
+  background: var(--c-primary-50);
+  border-color: var(--c-primary-200);
+}
+
+.subcol-title {
+  color: var(--c-primary-700);
+  font-weight: 700;
+}
+
+.subcol-desc {
+  color: var(--c-ink-3);
+  font-size: var(--fs-xs);
+}
+
+@media (max-width: 639px) {
+  .subcol-grid { grid-template-columns: minmax(0, 1fr); }
+}
+
+
+/* ==========================================================================
+ * 会员名录页（_default/directory.html）
+ * ========================================================================== */
+.search-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-4);
+}
+
+/* 名录页的筛选框不需要占满整行；搜索页的同名表单不加这个修饰类 */
+.search-form-sm { max-width: 420px; }
+
+.search-form input {
+  flex: 1;
+  min-width: 0;
+  height: var(--tap);
+  padding-inline: var(--sp-3);
+  background: var(--c-bg);
+  border: 1px solid var(--c-line);
+  border-radius: var(--r-sm);
+}
+
+.search-form input:focus {
+  background: #fff;
+  border-color: var(--c-primary-400);
+  outline: none;
+}
+
+.search-form button {
+  flex: none;
+  min-height: var(--tap);
+  padding-inline: var(--sp-5);
+  background: var(--c-primary);
+  border: 0;
+  border-radius: var(--r-sm);
+  color: #fff;
+  font-weight: 600;
+  transition: background var(--transition);
+}
+
+.search-form button:hover { background: var(--c-primary-600); }
+
+@media (max-width: 479px) {
+  .search-form { flex-direction: column; }
+  .search-form button { width: 100%; }
+}
+
+/* 卡片网格。会员天地是本站重点，名单不再是一行一个名字的表格，而是带 LOGO
+   的卡片，整卡可点进该会员自己的页面。
+   auto-fill 而不是 auto-fit：卡片尺寸一致优先于铺满最后一行，
+   最后一行不满时宁可留空轨，也不要那几张被拉大。
+   （上一版那套 .directory-list / .directory-list li 已随本次改版废弃：
+     旧站是固定 33.33% 的六列，窄屏一行掉成一个字。） */
+.directory-grid {
+  display: grid;
+  gap: var(--gap);
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+}
+
+.member-card { min-width: 0; }
+
+.member-card-link {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  height: 100%;
+  padding: var(--sp-3);
+  background: var(--c-bg);
+  border: 1px solid var(--c-line);
+  border-radius: var(--r-md);
+  transition: background var(--transition), border-color var(--transition);
+}
+
+.member-card-link:hover {
+  background: var(--c-primary-50);
+  border-color: var(--c-primary-200);
+}
+
+.member-card-name {
+  color: var(--c-primary-700);
+  font-weight: 700;
+}
+
+.member-card-industry {
+  color: var(--c-ink-3);
+  font-size: var(--fs-xs);
+}
+
+.member-card-summary {
+  color: var(--c-ink-2);
+  font-size: var(--fs-sm);
+}
+
+/* 手机上仍排两列：一列时卡片要占满一屏，翻名单得一直滚 */
+@media (max-width: 479px) {
+  .directory-grid {
+    gap: var(--sp-3);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+
+/* ==========================================================================
+ * 会员详情页（layouts/member/single.html）
+ * 布局由 type: member 命中，不依赖栏目层级；企业字段全部可空，
+ * 模板里没填的行直接不渲染，所以这里不会出现空标签的样式残留。
+ * ========================================================================== */
+.member-head {
+  display: grid;
+  gap: var(--sp-4);
+  padding-bottom: var(--sp-4);
+  border-bottom: 1px solid var(--c-line);
+}
+
+@media (min-width: 640px) {
+  .member-head {
+    grid-template-columns: 200px minmax(0, 1fr);
+    align-items: start;
+  }
+}
+
+.member-head .article-title { margin-bottom: var(--sp-2); }
+
+.member-summary {
+  margin-bottom: var(--sp-3);
+  color: var(--c-ink-2);
+  font-size: var(--fs-sm);
+}
+
+/* 企业信息：左标签右值。地址、网址这类长值要能断行，否则会把面板顶宽 */
+.member-facts {
+  display: grid;
+  gap: var(--sp-1) var(--sp-3);
+  margin: 0;
+  grid-template-columns: max-content minmax(0, 1fr);
+  font-size: var(--fs-sm);
+}
+
+.member-facts dt { color: var(--c-ink-3); }
+
+.member-facts dd {
+  margin: 0;
+  color: var(--c-ink);
+  overflow-wrap: anywhere;
+}
+
+.member-back { margin-bottom: var(--sp-3); }
+
+/* ---- 会员页图片分区（partials/components/photo-grid.html）----
+   企业环境 / 产品案例 / 资质荣誉三块共用：每块一个标题 + 一个响应式网格。 */
+.member-gallery { margin-top: var(--sp-6); }
+
+.member-gallery-title {
+  margin-bottom: var(--sp-3);
+  padding-bottom: var(--sp-2);
+  border-bottom: 1px solid var(--c-line);
+  font-size: var(--fs-lg);
+}
+
+.photo-grid {
+  display: grid;
+  gap: var(--sp-3);
+  /* minmax(min(200px, 100%), 1fr)：列宽永远不会超过容器宽度。
+     直接写 minmax(200px, 1fr) 在极窄容器里会把栅格撑出横向滚动条。 */
+  grid-template-columns: repeat(auto-fill, minmax(min(200px, 100%), 1fr));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.photo-item figure { margin: 0; }
+
+.photo-item img {
+  width: 100%;
+  height: auto;
+}
+
+.photo-item figcaption {
+  margin-top: var(--sp-2);
+  color: var(--c-ink-3);
+  font-size: var(--fs-sm);
+  line-height: var(--lh-base);
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+
+/* ==========================================================================
+ * 站内搜索页（_default/search.html）
+ * 结果 DOM 由 assets/js/theme.js 的 initSearch() 生成
+ * ========================================================================== */
+.search-empty {
+  padding: var(--sp-6) 0;
+  color: var(--c-ink-3);
+  text-align: center;
+}
+
+.search-count {
+  margin-bottom: var(--sp-4);
+  color: var(--c-ink-2);
+  font-size: var(--fs-sm);
+}
+
+.search-result {
+  padding-block: var(--sp-3);
+  border-bottom: 1px solid var(--c-line);
+}
+
+.search-result:last-child { border-bottom: 0; }
+
+.search-result h3 {
+  margin-bottom: var(--sp-1);
+  font-size: var(--fs-md);
+}
+
+.search-result .url {
+  margin-bottom: var(--sp-1);
+  color: var(--c-ink-3);
+  font-size: var(--fs-xs);
+  word-break: break-all;
+}
+
+.search-result .excerpt {
+  margin: 0;
+  color: var(--c-ink-2);
+  font-size: var(--fs-sm);
+}
+
+
+/* ==========================================================================
+ * 404
+ * ========================================================================== */
+.page-404 { padding-block: var(--sp-7); }
+
+.page-404-tip {
+  margin-bottom: var(--sp-4);
+  color: var(--c-ink-2);
+}
+
+@media (min-width: 768px) {
+  .page-404 { padding-block: var(--sp-8); }
+}
+
+
+/* ==========================================================================
+ * 打印：协会站经常有人打印通知公告，这里把导航和装饰去掉
+ * ========================================================================== */
+@media print {
+  .topbar,
+  .banner,
+  .main-nav,
+  .site-footer,
+  .friendlinks,
+  .inner-side,
+  .breadcrumb,
+  .pagination { display: none !important; }
+
+  body { background: #fff; }
+
+  .inner-layout,
+  .container { max-width: none; padding: 0; }
+
+  .panel,
+  .card { border: 0; box-shadow: none; }
+
+  .article-body a { color: inherit; text-decoration: underline; }
+}

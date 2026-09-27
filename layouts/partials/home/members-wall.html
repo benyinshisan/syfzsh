@@ -1,0 +1,48 @@
+{{- /*
+  会员 LOGO 墙（首页整行）
+  ---------------------------------------------------------------------------
+  会员天地是本站重点，故会员不再是行二角落里的一张列表卡，而是紧跟行一之后
+  独占一行的 LOGO 墙。
+
+  数据源＝会员内容页 content/members/directory/，与名录页同一份内容：
+  后台新建一个会员，名录页与首页墙同时出现，本模板不用改。
+  每格链到**该会员自己的页面**（/members/directory/<slug>/）。
+
+  顺序**不在这里决定** —— 取自 components/member-pages.html，也就是后台
+  「会员天地 → 会员排序」那份名单（data/members_order.yaml）。名录页与页脚
+  会员名录调的是同一个 partial，所以三处顺序不可能分叉。
+
+  为什么必须共用：首页墙只取前 N 家（membersWall.count），名录页取全部。
+  如果两处各自取数，一旦顺序不一致，看的人会以为墙上漏了几家。
+
+  参数：data/home.yaml 的 membersWall.title / membersWall.count
+        （count 填 0 = 全部；版块右上角「查看名录」始终链到完整的名录页）
+*/ -}}
+{{- $cfg := hugo.Data.home | default dict -}}
+{{- $c := $cfg.membersWall | default dict -}}
+{{- $title := $c.title | default "会员单位" -}}
+{{- $count := $c.count | default 0 -}}
+{{- with site.GetPage "/members/directory" -}}
+{{- $dir := . -}}
+{{- $pages := partial "components/member-pages.html" . -}}
+{{- if gt $count 0 }}{{ $pages = first $count $pages }}{{ end -}}
+{{- with $pages }}
+<div class="home-row home-row-m1 container">
+  <div class="card">
+    {{ partial "components/section-head.html" (dict "title" $title "href" $dir.RelPermalink "more" "查看名录") }}
+    <ul class="member-wall">
+      {{- range . }}
+      <li class="member-wall-item">
+        <a class="member-wall-link" href="{{ .RelPermalink }}" title="{{ .Title }}">
+          {{- /* 名片/墙/名录三处共用 member-logo.html：占位块不写字，
+                 名号就在紧邻的 .member-wall-name 里，写两遍是重复。 */ -}}
+          <span class="member-logo member-logo-wall">{{ partial "components/member-logo.html" (dict "page" .) }}</span>
+          <span class="member-wall-name">{{ .LinkTitle | default .Title }}</span>
+        </a>
+      </li>
+      {{- end }}
+    </ul>
+  </div>
+</div>
+{{- end }}
+{{- end }}

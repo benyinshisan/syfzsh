@@ -5,7 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <!-- CMS 后台不应被搜索引擎收录 -->
     <meta name="robots" content="noindex, nofollow" />
-    <title>内容管理 · 浙江省商贸业联合会</title>
+    <!-- 不加这行浏览器会去请求 /favicon.ico，而本站图标是 gif，会留下一条 404 -->
+    <link rel="icon" href="/images/favicon.gif" />
+    <title>内容管理</title>
+    <!--
+      左栏的分组标题与缩进。由 scripts/gen-cms-config.mjs 生成，与本目录的
+      config.yml 同源 —— 改栏目请改生成器的 sections 表并重新生成，别手改它。
+      这里只是给侧栏链接（Decap 给它们打了 data-testid）加上左缩进和一个
+      ::before 组标题；不生效也不会出错，最坏情况退回扁平列表。
+    -->
+    <link rel="stylesheet" href="sidebar-groups.css" />
   </head>
   <body>
     <div id="cms-fallback"></div>
@@ -54,13 +63,22 @@
         }
 
         var script = document.createElement('script');
-        script.src =
-          'https://cdn.jsdelivr.net/npm/decap-cms@^3.0.0/dist/decap-cms.js';
-        // CMS 就绪后再加载自定义预览：它依赖 window.CMS / window.h / window.createClass
+        // Decap CMS 前端内置在本目录，不走 CDN —— 见 CMS.md「为什么内置而不是用 CDN」。
+        // 升级：npm run cms:vendor（会重新下载并覆盖 decap-cms.js）
+        script.src = 'decap-cms.js';
+        /* CMS 就绪后再依次加载两个自定义脚本，两者都依赖
+           window.CMS / window.h / window.createClass。
+           ⚠ 顺序不能反：editor-components.js 覆盖的是内置图片组件，
+             必须在任何编辑面板渲染之前注册完，否则会先出现内置组件再被换掉。 */
         script.onload = function () {
-          var preview = document.createElement('script');
-          preview.src = 'preview.js';
-          document.body.appendChild(preview);
+          var components = document.createElement('script');
+          components.src = 'editor-components.js';
+          components.onload = function () {
+            var preview = document.createElement('script');
+            preview.src = 'preview.js';
+            document.body.appendChild(preview);
+          };
+          document.body.appendChild(components);
         };
         document.body.appendChild(script);
       })();

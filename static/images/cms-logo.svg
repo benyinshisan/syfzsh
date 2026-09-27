@@ -1,0 +1,13 @@
+<!--
+  后台（/admin/）左上角的标识。
+  留空的话 Decap 会显示它自带的图标，编辑同事会以为「进错了别人的系统」。
+  这里只取站点主色 + 一个「商」字，属于占位性质的图形，不含任何机构信息；
+  将来有正式 LOGO 时，直接替换本文件即可（config.yml 里的 logo_url 不用动）。
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64"
+     role="img" aria-label="内容管理">
+  <rect width="64" height="64" rx="14" fill="#2f5d95"/>
+  <text x="32" y="45" text-anchor="middle" font-size="38"
+        font-family="'PingFang SC','Microsoft YaHei','Heiti SC',sans-serif"
+        fill="#ffffff">商</text>
+</svg>

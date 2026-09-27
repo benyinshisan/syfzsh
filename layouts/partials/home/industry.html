@@ -1,0 +1,19 @@
+{{- /*
+  行业资讯（行二左上角的卡）
+  ---------------------------------------------------------------------------
+  原 home/dual.html 的左半：会员动态独立成行后，这张卡只剩行业资讯，故不再用
+  双栏容器（.dual-col 已删），也更名以对上它现在的内容。
+  行二左列现在是「行业资讯 + 四页签」上下两张卡，右侧仍是侧栏。
+*/ -}}
+{{- $cfg := hugo.Data.home | default dict -}}
+{{- $c := $cfg.industry | default dict -}}
+{{- $hz := $c.section | default "news/industry" -}}
+{{- $hzCount := $c.count | default 10 -}}
+{{- with site.GetPage $hz -}}
+<div class="col card">
+  {{ partial "components/section-head.html" (dict "title" .Title "href" .RelPermalink) }}
+  <div class="col-body news-cols">
+    {{ partial "components/news-list.html" (dict "pages" (first $hzCount .RegularPages.ByDate.Reverse)) }}
+  </div>
+</div>
+{{- end }}

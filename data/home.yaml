@@ -1,0 +1,19 @@
+featured:
+  title: 图片新闻
+  count: 3
+headline:
+  section: news/association
+  count: 5
+notice:
+  section: news/notice
+  count: 10
+  marqueeHeight: 290
+industry:
+  section: news/industry
+  count: 10
+membersWall:
+  title: 会员单位
+  count: 9
+membersNews:
+  section: members/dynamics
+  count: 12

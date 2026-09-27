@@ -1,0 +1,29 @@
+{{- /*
+  统一板块标题组件
+  ---------------------------------------------------------------------------
+  旧站的板块标题是「烤了字的图片 + <map> 热区」（如 images/index_r3_c25.jpg），
+  换字必须重做图。这里改为纯文字 + CSS，标题只有一处真相。
+
+  参数（dict）：
+    title     必填，标题文字。通常传 site.GetPage $section 的 .Title，
+              这样首页与栏目页的标题永远一致，不会「首页写 A、栏目页写 B」。
+    subtitle  选填，标题右侧的小字
+    href      选填，「更多」的链接地址；不传则不渲染「更多」
+    more      选填，「更多」的文案，默认「更多」
+    tag       选填，标题使用的标签名，默认 h2（页脚等处可传 h3 保持大纲层级）
+*/ -}}
+{{- $tag := .tag | default "h2" -}}
+{{- /* 动态标签名不能写成 <{{ $tag }}>：< 后面跟的不是字母而是 action，
+       Go 的 html/template 就不把它当作标签开始，而按普通文本转义成 &lt;，
+       页面上于是显示出 <h2 class="section-title">图片新闻</h2> 这串源码。
+       故标签本身走 printf + safeHTML；.title 保持普通 action，转义仍自动
+       生效（不要把它也并进 safeHTML，否则标题里的 < & 会原样输出）。*/ -}}
+{{- $open := printf `<%s class="section-title">` $tag -}}
+{{- $close := printf `</%s>` $tag -}}
+<div class="section-head">
+  {{ $open | safeHTML }}{{ .title }}{{ $close | safeHTML }}
+  {{- with .subtitle }}<span class="section-sub">{{ . }}</span>{{ end }}
+  {{- with .href }}
+  <a class="section-more" href="{{ . | relURL }}">{{ $.more | default "更多" }}<span class="section-more-arrow" aria-hidden="true">›</span></a>
+  {{- end }}
+</div>

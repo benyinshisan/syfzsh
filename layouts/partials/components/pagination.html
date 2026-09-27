@@ -1,5 +1,12 @@
-{{- /* 分页器：兼容 Hugo 0.128+ 的 .Paginator */ -}}
-{{- $p := .Paginator -}}
+{{- /*
+  分页器
+  ---------------------------------------------------------------------------
+  参数（dict）：paginator 必填 —— 页面模板里已经算好的那个 paginator。
+  ⚠ 这里**不要**改回 `.Paginator`：一个页面只保留一个 paginator，一级栏目用的是
+    .Paginate（汇总集合），此时再调 .Paginator 会拿到缓存里的另一份结果，
+    分页链接的页数就与实际列表对不上了。
+*/ -}}
+{{- $p := .paginator -}}
 {{- if gt $p.TotalPages 1 }}
 <nav class="pagination" aria-label="分页">
   {{- with $p.First }}

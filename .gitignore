@@ -1,7 +1,15 @@
 # 构建产物
 public/
+# 双击可看版（离线预览，见 hugo.local.toml）
+public-local/
+# 试构建输出（换 baseURL 时用来核对生成的 HTML，如子路径 /zjsm-hugo/ 有没有漏前缀）
+public-check/
 resources/_gen/
 .hugo_build.lock
+
+# 本地 Hugo 二进制（请用 winget / brew / apt 安装，见 README）
+/hugo
+/hugo.exe
 
 # Node（Decap CMS 本地编辑，见 CMS.md）
 node_modules/

@@ -1,12 +1,11 @@
 {{- /* 站内搜索页：索引由 Hugo 生成的 /searchindex.json 提供，前端过滤见 assets/js/theme.js */ -}}
 {{ define "main" }}
-{{ partial "components/page-banner.html" . }}
 {{ partial "components/breadcrumb.html" . }}
 
 <div class="inner-layout">
   <div class="inner-main">
     <div class="panel">
-      <div class="panel-head">站内搜索</div>
+      <h1 class="panel-head">站内搜索</h1>
       <div class="panel-body">
         <form class="search-form" id="search-form" action="{{ "/search/" | relURL }}" method="get" role="search">
           <label class="sr-only" for="search-input">关键字</label>

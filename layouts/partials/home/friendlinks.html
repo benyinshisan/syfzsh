@@ -1,20 +1,24 @@
 {{- /*
-  友情链接：旧站首页底部是 4 个 display:none 的 <select> 下拉框，
-  这里改为可见的链接块（数据来自 data/friendlinks.yaml）。
-  若想恢复旧站行为，给 .friendlinks 加 style="display:none" 即可。
+  友情链接（数据来自 data/friendlinks.yaml）
+  ---------------------------------------------------------------------------
+  ⚠ YAML 的顶层键本身就是分组标题，下面直接把它当 <dt> 渲染。
+    因此 static/admin/config.yml 里 data-friendlinks 集合的字段 name
+    必须与那三个键一字不差；改标题要同时改 YAML 与 config.yml 两处。
 */ -}}
-{{- with site.Data.friendlinks }}
+{{- with hugo.Data.friendlinks }}
 <div class="friendlinks">
-  <h2>友情链接</h2>
-  <dl>
-    {{- range $group, $links := . }}
-    <dt>{{ $group }}</dt>
-    <dd>
-      {{- range $links }}
-      <a href="{{ .url }}" target="_blank" rel="noopener" title="{{ .name }}">{{ .name }}</a>
+  <div class="container">
+    <h2 class="section-title">友情链接</h2>
+    <dl>
+      {{- range $group, $links := . }}
+      <dt>{{ $group }}</dt>
+      <dd>
+        {{- range $links }}
+        <a href="{{ .url }}" target="_blank" rel="noopener" title="{{ .name }}">{{ .name }}</a>
+        {{- end }}
+      </dd>
       {{- end }}
-    </dd>
-    {{- end }}
-  </dl>
+    </dl>
+  </div>
 </div>
 {{- end }}

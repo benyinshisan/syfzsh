@@ -1,20 +1,48 @@
+{{- /*
+  主导航
+  ---------------------------------------------------------------------------
+  桌面（>=1024px）：水平排布，二级菜单 hover / focus 下拉（纯 CSS）。
+  移动（<1024px）：由 theme.js 的 initNav() 折叠为汉堡菜单，二级改手风琴。
+
+  为什么断点取 1024 而不是 768：8 个一级栏目 × 约 90px ≈ 720px，
+  在 768px 宽度下会挤爆换行，1024px 才排得开。
+*/ -}}
 {{- $cur := .RelPermalink -}}
 <nav class="main-nav" aria-label="主导航">
-  <ul id="nav" class="nav clearfix">
-    {{- range site.Menus.main }}
-    {{- if not .Parent }}
-    {{- $on := or (eq .URL $cur) (and (ne .URL "/") (hasPrefix $cur .URL)) }}
-    <li class="nLi{{ if .HasChildren }} has-sub{{ end }}{{ if $on }} on{{ end }}">
-      <h3><a href="{{ .URL | relURL }}">{{ .Name }}</a></h3>
-      {{- with .Children }}
-      <ul class="sub">
-        {{- range . }}
-        <li><a href="{{ .URL | relURL }}">{{ .Name }}</a></li>
+  <div class="container nav-inner">
+
+    <button type="button" class="nav-toggle" id="nav-toggle"
+            aria-expanded="false" aria-controls="nav" aria-label="展开导航菜单">
+      <span class="nav-toggle-bar" aria-hidden="true"></span>
+      <span class="nav-toggle-bar" aria-hidden="true"></span>
+      <span class="nav-toggle-bar" aria-hidden="true"></span>
+    </button>
+
+    <ul id="nav" class="nav">
+      {{- range site.Menus.main }}
+      {{- if not .Parent }}
+      {{- $item := . }}
+      {{- $on := or (eq .URL $cur) (and (ne .URL "/") (hasPrefix $cur .URL)) }}
+      {{- $subId := printf "sub-%s" ($item.Identifier | default (printf "w%d" $item.Weight)) }}
+      <li class="nav-item{{ if .HasChildren }} has-sub{{ end }}{{ if $on }} on{{ end }}">
+        <div class="nav-row">
+          <a class="nav-link" href="{{ .URL | relURL }}">{{ .Name }}</a>
+          {{- if .HasChildren }}
+          <button type="button" class="sub-toggle" aria-expanded="false"
+                  aria-controls="{{ $subId }}" aria-label="展开「{{ .Name }}」子菜单"></button>
+          {{- end }}
+        </div>
+        {{- with .Children }}
+        <ul class="sub" id="{{ $subId }}">
+          {{- range . }}
+          <li><a href="{{ .URL | relURL }}">{{ .Name }}</a></li>
+          {{- end }}
+        </ul>
         {{- end }}
-      </ul>
+      </li>
       {{- end }}
-    </li>
-    {{- end }}
-    {{- end }}
-  </ul>
+      {{- end }}
+    </ul>
+
+  </div>
 </nav>

@@ -1,0 +1,36 @@
+{{- /*
+  会员页的图片分区（企业环境 / 产品案例 / 资质荣誉）
+  ---------------------------------------------------------------------------
+  参数（dict）：
+    title  分区标题，如「企业环境 / 门店实拍」
+    items  front matter 里对应的列表，每项形如 {image: /uploads/..., caption: ...}
+
+  为什么是「分区」而不是让编辑把图插进正文：
+  这三类图各成一组、各自带说明，而且在每一家会员页上都出现在**同一个位置**。
+  做成 front matter 的字段后，编辑只需要在后台点「加一张」并拖顺序，
+  不必操心图片插在正文哪一段、也不用管并排怎么排。
+
+  整块没有图就不输出 —— 与站点既有约定一致（首页版块取不到内容整块消失）。
+*/ -}}
+{{- with .items }}
+{{- $title := $.title }}
+<section class="member-gallery">
+  <h2 class="member-gallery-title">{{ $title }}</h2>
+  <ul class="photo-grid">
+    {{- range . }}
+    {{- $cap := .caption }}
+    {{- with .image }}
+    <li class="photo-item">
+      <figure>
+        {{- /* alt 优先用说明；没写说明时退回分区名，至少让读屏软件有个交代 */ -}}
+        {{ partial "components/img.html" (dict "src" . "alt" ($cap | default $title) "width" 800) }}
+        {{- with $cap }}
+        <figcaption>{{ . }}</figcaption>
+        {{- end }}
+      </figure>
+    </li>
+    {{- end }}
+    {{- end }}
+  </ul>
+</section>
+{{- end }}

@@ -1,50 +1,64 @@
 {{- $c := site.Params.contact -}}
 <footer class="site-footer">
 
-  {{- /* ---------- 商联会会员滚动名录 ---------- */ -}}
-  {{- with site.Data.members.members }}
+  {{- /* ---------- 会员滚动名录（数据源＝会员内容页 content/members/directory/） ----------
+       首页已经有会员 LOGO 墙，同一页再滚一遍同样的名单是冗余，故首页不输出。
+       ⚠ 每个名字链接到**该会员自己的页面**（旧版全部指向名录页，等于白链）。
+       ⚠ 顺序取自 components/member-pages.html（后台「会员天地 → 会员排序」控制），
+         与首页 LOGO 墙、名录页三处共用一份顺序。 */ -}}
+  {{- if not .IsHome }}
+  {{- with partial "components/member-pages.html" . }}
+  {{- /* 滚动区高度（px）。这是页脚的会员名录条，不是首页版块，
+         故参数在 hugo.toml 的 [params.footer]，不在 data/home.yaml。 */ -}}
+  {{- $h := site.Params.footer.membersMarqueeHeight | default 125 }}
   <div class="member-strip">
-    <div class="member-strip-head">
-      <img src="{{ "images/index_r86_c4.jpg" | relURL }}" width="984" height="35" alt="商联会会员">
-    </div>
-    <div class="member-strip-body sylh">
-      <div id="Scroll">
-        <div id="ScrollMe" style="overflow:hidden;height:{{ site.Params.home.membersMarqueeHeight | default 125 }}px"
-             data-marquee data-speed="90" data-step="1" data-pause="3000" data-gap="16">
-          <div class="member-links link">
-            {{- range . }}
-            <a href="{{ "/members/directory/" | relURL }}" title="{{ . }}">{{ . }}</a>
-            {{- end }}
-          </div>
+    <div class="container">
+      {{ partial "components/section-head.html" (dict "title" "会员名录" "tag" "h2" "href" "/members/directory/") }}
+      <div class="marquee member-marquee" style="--marquee-h: {{ $h }}px"
+           data-marquee data-speed="90" data-step="1" data-pause="3000" data-gap="16">
+        <div class="member-links">
+          {{- range . }}
+          <a href="{{ .RelPermalink }}" title="{{ .Title }}">{{ .LinkTitle | default .Title }}</a>
+          {{- end }}
         </div>
       </div>
     </div>
   </div>
   {{- end }}
+  {{- end }}
 
-  {{- /* ---------- 页脚联系信息 ---------- */ -}}
-  <div class="footer-bar"></div>
+  {{- /* ---------- 页脚联系信息（全部来自 hugo.toml 的 [params.contact]） ---------- */ -}}
   <div class="footer-contact">
-    <div class="footer-contact-inner">
+    <div class="container footer-contact-inner">
       <div class="footer-col">
-        <p>{{ $c.organizer }}</p>
+        <p class="footer-org">{{ $c.organizer }}</p>
         <p>{{ $c.address }}</p>
-        <p>{{ $c.fax }}　{{ $c.tel }}</p>
-        <p>编号：<a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener">浙ICP备{{ $c.icpCode }}号</a></p>
+        <p>邮编：{{ $c.zip }}</p>
       </div>
       <div class="footer-col">
-        <p>{{ $c.zip }}</p>
+        <p>电话：{{ $c.tel }}</p>
+        <p>传真：{{ $c.fax }}</p>
         <p>邮箱：<a href="mailto:{{ $c.email }}">{{ $c.email }}</a></p>
-        <p class="footer-vendor">
-          <a href="{{ $c.vendorUrl }}" target="_blank" rel="noopener">
-            策划制作 <img src="{{ "images/unitednet.gif" | relURL }}" width="17" height="15" alt=""> {{ $c.vendor }}
-          </a>
+      </div>
+      {{- with $c.vendor }}
+      <div class="footer-col">
+        <p>
+          {{- with $c.vendorUrl }}<a href="{{ . }}" target="_blank" rel="noopener">{{ end }}
+          策划制作：{{ . }}
+          {{- with $c.vendorUrl }}</a>{{ end }}
         </p>
-        <p class="footer-stats" id="site-stats"></p>
       </div>
-      <div class="footer-qr">
-        <img src="{{ "images/2wm.png" | relURL }}" width="288" height="87" alt="微信公众号">
-      </div>
+      {{- end }}
+    </div>
+
+    <div class="container footer-bottom">
+      <p class="footer-copy">© {{ now.Year }} {{ site.Params.siteName | default site.Title }}</p>
+      {{- /* icpCode 留空时整行不输出 —— 本地开发/未备案的站点不该出现空备案号 */ -}}
+      {{- with $c.icpCode }}
+      <p class="footer-icp">
+        <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener">{{ . }}</a>
+      </p>
+      {{- end }}
     </div>
   </div>
 

@@ -1,0 +1,61 @@
+{{- /*
+  正文图片渲染钩子
+  ---------------------------------------------------------------------------
+  把 Markdown 里的图片统一渲染成 <figure>，让正文插图默认居中、带图注，
+  并且可以按张切换版式：
+
+      ![说明文字](/uploads/news/xxx.jpg "layout=wide")
+
+  「说明文字」→ alt 与外层图注（<figcaption>）
+  title 位     → 版式。后台「正文插图」组件会写下它，编辑者不需要记。
+
+  前置条件（hugo.toml）
+  ---------------------------------------------------------------------------
+  markup.goldmark.parser.wrapStandAloneImageWithinParagraph = false
+  该选项默认 true，会把独占一行的图片塞进 <p> 里，于是本文件拿到的 .IsBlock
+  恒为 false，输出的 <figure> 就成了 <p><figure>…</figure></p> 的非法嵌套。
+  关掉之后图片独占一段，.IsBlock 为 true。
+
+  为什么版式放在 title 位而不是 Markdown 属性位
+  ---------------------------------------------------------------------------
+  Hugo 默认 markup.goldmark.parser.attribute.title = true，会把 "…" 解析成
+  .Title，这条链路开箱即用。而 {.wide} 这种属性写法，Decap 的图片正则
+  /^!\[([^\]]*)\]\((.*?)(\s"([^"]*)")?\)/ 匹配不到，富文本模式往返会丢。
+  title 是唯一能安全往返的通道。
+
+  注意
+  ---------------------------------------------------------------------------
+  · 图注取自 .Text（渲染后的 HTML），alt 取自 .PlainText（纯文本）——
+    两者混用会把 markdown 星号塞进 alt，或者把实体塞进正文。
+  · 只有 .IsBlock（图片独占一段）才输出 <figure>；夹在句子中间的图仍是裸
+    <img>，否则会把整段文字撕成两半。
+*/ -}}
+{{- $layout := "center" -}}
+{{- $htmlTitle := "" -}}
+{{- with .Title -}}
+  {{- $kw := . -}}
+  {{- if hasPrefix $kw "layout=" -}}
+    {{- $kw = strings.TrimPrefix "layout=" $kw -}}
+  {{- end -}}
+  {{- if in (slice "center" "wide" "left" "right" "plain") $kw -}}
+    {{- $layout = $kw -}}
+  {{- else -}}
+    {{- /* 不认识的 title 一律当真正的 HTML title 用，不丢信息 */ -}}
+    {{- $htmlTitle = . -}}
+  {{- end -}}
+{{- end -}}
+{{- /* 说明取 .PlainText（纯文本，可直接用于 alt），图注取 .Text（渲染后的 HTML）。
+       用去掉首尾空白的说明判断「有没有图注」—— 否则 ![ ](x.jpg) 这种只打了
+       一个空格的写法会渲染出一个空的 <figcaption>，白多一行间距。 */ -}}
+{{- $alt := strings.TrimSpace .PlainText -}}
+{{- $caption := .Text -}}
+{{- if and .IsBlock (ne $layout "plain") -}}
+<figure class="md-figure md-figure--{{ $layout }}">
+  {{- partial "components/img.html" (dict "src" .Destination "alt" $alt "width" 1200) }}
+  {{- if $alt }}
+  <figcaption>{{ $caption }}</figcaption>
+  {{- end }}
+</figure>
+{{- else -}}
+{{- partial "components/img.html" (dict "src" .Destination "alt" $alt "width" 1200 "title" $htmlTitle) }}
+{{- end -}}

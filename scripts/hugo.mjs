@@ -1,12 +1,14 @@
 #!/usr/bin/env node
 /**
- * 跨平台 Hugo 启动器。
+ * 跨平台 Hugo 启动器 —— 让 `npm run dev` / `npm run build` 在任何机器上都能跑。
  *
- * 背景：本仓库根目录自带一个 linux/amd64 的 `hugo` 二进制，但很多机器上
- * `hugo` 并不在 PATH 里，于是 `npm run dev` 会报 `sh: 1: hugo: not found`。
+ * 查找顺序：
+ *   1. 仓库根目录的 hugo / hugo.exe（本地开发时手动放一个即可，已在 .gitignore 里）
+ *   2. PATH 里的 hugo
  *
- * 策略：优先用仓库根目录的二进制；若不存在、无执行权限或平台不匹配
- * （例如 macOS 上跑 linux 二进制会 ENOEXEC），再回退到 PATH 里的 `hugo`。
+ * 本仓库**不再**自带二进制 —— 早先那个 57MB 的 linux/amd64 `hugo` 无法在
+ * Windows/macOS 上执行，只会让 clone 变慢，已经删掉。
+ * 安装方式见 README：Windows 用 `winget install Hugo.Hugo.Extended`。
  *
  * 用法：node scripts/hugo.mjs server -D
  */
@@ -65,7 +67,10 @@ for (const bin of candidates) {
 console.error(
   '未找到可用的 Hugo。\n' +
     `  - 已尝试：${candidates.join('、')}\n` +
-    '  - 处理方式：把 hugo 可执行文件放到仓库根目录，或安装 Hugo 并加入 PATH。\n' +
+    '  - Windows：winget install Hugo.Hugo.Extended\n' +
+    '  - macOS：brew install hugo\n' +
+    '  - Linux：apt install hugo（或从 releases 下载）\n' +
+    '  - 也可以把 hugo 可执行文件直接放到仓库根目录\n' +
     '  - 下载：https://github.com/gohugoio/hugo/releases'
 );
 process.exit(127);
