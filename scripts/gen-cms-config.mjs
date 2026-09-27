@@ -152,7 +152,10 @@ display_url: http://localhost:1313
 
 # 后台左上角的标识。留空会显示 Decap 自带的图标，编辑同事会以为
 # 「进错了别人的系统」。换成自己的标即可（图在 static/images/ 下）。
-logo_url: /images/cms-logo.svg
+# ⚠ 必须写相对路径 ../images/…，不能写 /images/… —— 后台是纯静态文件，
+#   不走 Hugo 的子路径处理，写死根路径会落到账号根站上、换域名后 404。
+#   ../images 相对本页 <站点>/admin/ 解析，根部署与子路径部署都对。
+logo_url: ../images/cms-logo.svg
 
 # 非英语界面；index.html 加载的是完整版 decap-cms，已内置全部语言包
 locale: zh_Hans

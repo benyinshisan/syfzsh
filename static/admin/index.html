@@ -5,8 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <!-- CMS 后台不应被搜索引擎收录 -->
     <meta name="robots" content="noindex, nofollow" />
-    <!-- 不加这行浏览器会去请求 /favicon.ico，而本站图标是 gif，会留下一条 404 -->
-    <link rel="icon" href="/images/favicon.gif" />
+    <!--
+      不加这行浏览器会去请求 /favicon.ico，而本站图标是 gif，会留下一条 404。
+      ⚠ 路径必须用相对写法 ../images/…，不能写 /images/…：
+        本后台是纯静态文件，Hugo 不会给它做子路径处理，而站点部署在
+        https://chihayam.github.io/syfzsh/ 之下 —— 写死的 /images/favicon.gif
+        会落到账号根站（chihayam.github.io/images/）上去，换自有域名后直接 404。
+        ../images 相对本页 /syfzsh/admin/ 解析 = /syfzsh/images/（根部署时 = /images/）。
+    -->
+    <link rel="icon" href="../images/favicon.gif" />
     <title>内容管理</title>
     <!--
       左栏的分组标题与缩进。由 scripts/gen-cms-config.mjs 生成，与本目录的
