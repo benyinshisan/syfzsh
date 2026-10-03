@@ -106,8 +106,8 @@ disableKinds = ["taxonomy", "term"]
   # layouts/partials/footer.html 统一输出，方便你一次性改排版。
   [params.contact]
     organizer = "兰州市商业发展商会"
-    address   = "此处填写详细地址"
-    zip       = "000000"
+    address   = "兰州市城关区静宁路100号"
+    zip       = "730030"
     tel       = "000-00000000"
     fax       = "000-00000000"
     email     = "email@example.com"
