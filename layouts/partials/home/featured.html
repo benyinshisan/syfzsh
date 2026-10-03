@@ -17,7 +17,9 @@
         {{- range $i, $p := . }}
         <li class="sy_ban_item{{ if eq $i 0 }} on{{ end }}">
           <a href="{{ $p.RelPermalink }}" title="{{ $p.Title }}">
-            {{ partial "components/thumb.html" (dict "page" $p "loading" (cond (eq $i 0) "eager" "lazy")) }}
+            {{- /* 第一张是首页 LCP 的有力候选：既 eager 又 fetchpriority=high。
+                   其余全部 lazy —— 轮播里还没显示的图不该跟首屏抢带宽。 */}}
+            {{ partial "components/thumb.html" (dict "page" $p "loading" (cond (eq $i 0) "eager" "lazy") "fetchpriority" (cond (eq $i 0) "high" "")) }}
             <span class="slide-caption">{{ $p.Title }}</span>
           </a>
         </li>

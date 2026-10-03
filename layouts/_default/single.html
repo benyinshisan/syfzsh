@@ -17,10 +17,12 @@
           </div>
         </header>
 
-        {{- /* 有配图才输出图片位，避免空骨架里出现占位块挡在正文前面 */ -}}
+        {{- /* 有配图才输出图片位，避免空骨架里出现占位块挡在正文前面。
+               这张图就在折叠线以上，是文章页 LCP 的第一候选，所以
+               loading=eager（别让浏览器等）＋ fetchpriority=high（别让别的图插队）。 */ -}}
         {{- with .Params.image }}
         <figure class="article-figure">
-          {{ partial "components/img.html" (dict "src" . "alt" $.Title "loading" "eager" "width" 1200) }}
+          {{ partial "components/img.html" (dict "src" . "alt" $.Title "loading" "eager" "fetchpriority" "high" "width" 1200) }}
         </figure>
         {{- end }}
 

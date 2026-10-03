@@ -29,6 +29,9 @@
     两者混用会把 markdown 星号塞进 alt，或者把实体塞进正文。
   · 只有 .IsBlock（图片独占一段）才输出 <figure>；夹在句子中间的图仍是裸
     <img>，否则会把整段文字撕成两半。
+  · layout=plain 会输出裸 <img>（不要 figure / 不要图注）。它是「这张图不
+    当正文插图处理」的开关，将来接图片放大（PhotoSwipe）时也复用它当
+    「这张图不参与放大」的标记 —— 见 docs/PORTING-FEATURES.md。别当死代码删掉。
 */ -}}
 {{- $layout := "center" -}}
 {{- $htmlTitle := "" -}}
@@ -49,13 +52,31 @@
        一个空格的写法会渲染出一个空的 <figcaption>，白多一行间距。 */ -}}
 {{- $alt := strings.TrimSpace .PlainText -}}
 {{- $caption := .Text -}}
+
+{{- /* 加载优先级
+       ---------------------------------------------------------------------
+       正文图默认 lazy —— 一篇文章可能有十几张图，全都 eager 会跟首屏抢带宽。
+       唯一的例外是「没有头图的页面上的第一张正文图」：那才是这一页的 LCP，
+       给它 eager + fetchpriority=high。
+       ⚠ 有头图（.Params.image）时正文图必须保持 lazy：头图在折叠线以上、
+         正文图在下面，两张都标 high 只会让浏览器把带宽分给看不见的那张，
+         反而拖慢 LCP。判据用 .Page.Params.image 而不是「是不是第一篇」。
+       .Ordinal 是 Hugo 给图片渲染钩子的序号（从 0 开始，同一页内递增），
+       实测可用（v0.167.0）。 */ -}}
+{{- $loading := "lazy" -}}
+{{- $fetchpriority := "" -}}
+{{- if and (eq .Ordinal 0) (not .Page.Params.image) -}}
+  {{- $loading = "eager" -}}
+  {{- $fetchpriority = "high" -}}
+{{- end -}}
+
 {{- if and .IsBlock (ne $layout "plain") -}}
 <figure class="md-figure md-figure--{{ $layout }}">
-  {{- partial "components/img.html" (dict "src" .Destination "alt" $alt "width" 1200) }}
+  {{- partial "components/img.html" (dict "src" .Destination "alt" $alt "width" 1200 "loading" $loading "fetchpriority" $fetchpriority) }}
   {{- if $alt }}
   <figcaption>{{ $caption }}</figcaption>
   {{- end }}
 </figure>
 {{- else -}}
-{{- partial "components/img.html" (dict "src" .Destination "alt" $alt "width" 1200 "title" $htmlTitle) }}
+{{- partial "components/img.html" (dict "src" .Destination "alt" $alt "width" 1200 "title" $htmlTitle "loading" $loading "fetchpriority" $fetchpriority) }}
 {{- end -}}

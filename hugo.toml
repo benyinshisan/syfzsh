@@ -95,6 +95,32 @@ disableKinds = ["taxonomy", "term"]
   description = "兰州市商业发展商会官方网站，发布商会动态、通知公告、行业资讯与会员服务信息，搭建会员企业与政府、行业之间的沟通桥梁。"
   keywords    = "兰州市商业发展商会,兰州商会,商业发展商会,商会动态,会员服务,兰州商贸"
 
+  # ---- 图片 CDN / 对象存储（预留扩展点，默认关闭）------------------------
+  # cdnBase 为空时，components/cdn-url.html 原样返回入参，整站输出与本功能
+  # 不存在时逐字节一致。也就是说：不填这两个值 = 什么都不会变。
+  #
+  # 将来要把图片交给 CDN / 阿里云 OSS 时，只需要：
+  #   1. 把 cdnBase 填成 CDN 域名（如 https://img.example.com）
+  #   2. 在 workflow 里加同步/回源配置
+  # 不需要改任何模板。图片文件本身继续留在 assets/uploads/（仓库仍是唯一真相
+  # 来源），Hugo 照旧在构建期缩放 + 转 WebP + 算宽高。
+  #
+  # ⚠ cdnStripBasePath 是「要不要先剥掉 baseURL 里的子路径」的开关，默认 false：
+  #   本站部署在 /syfzsh/ 子路径下，Hugo 输出的图片 URL 带 /syfzsh/ 前缀，
+  #   保留它 = CDN 回源到 chihayam.github.io 时零配置命中（推荐，也是默认）。
+  #   改成 true 会剥成 /uploads/...，适合将来改走 OSS 镜像、想让对象 key
+  #   干净可复用的场景，但那时源站必须把路径重写回去。
+  # ⚠ 与 hugo.local.toml 的 relativeURLs = true 不兼容：开了 relativeURLs 之后
+  #   $img.RelPermalink 已经变成按页面深度算出的相对路径，再套一个 CDN 域名会得到
+  #   形如 https://img.example.com/../../syfzsh/uploads/x.webp 的废链接。
+  #   所以离线构建必须让 cdnBase 保持为空。
+  #   （另：离线构建本身的路径问题是既有 bug，与 cdnBase 无关，见
+  #     docs/IMAGES-AND-OSS.md 「离线预览版是坏的」一节。）
+  # 完整分析（费用、阈值、备案约束、为什么不建议 CMS 直传）见
+  # docs/IMAGES-AND-OSS.md。
+  cdnBase           = ""
+  cdnStripBasePath  = false
+
   # ---- 条目型栏目 --------------------------------------------------------
   # 这些栏目下的页面是「条目」而非「文章」：它们是独立对象，不该被当成文章
   # 混进上级栏目的列表里（会员企业不该出现在「会员天地」栏目页的文章流里）。

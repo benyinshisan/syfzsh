@@ -1,0 +1,56 @@
+{{- /*
+  图片 CDN 前缀 —— 把站内图片 URL 改写成对象存储 / CDN 域名下的地址。
+
+  ⚠ 默认是「什么都不做」。site.Params.cdnBase 为空时，本 partial 原样返回入参，
+    整站输出与不开这个功能时逐字节一致。这一点是硬要求：这个开关是给将来
+    「图片迁到 OSS / CDN」预留的扩展点，不该在今天就改变任何页面。
+
+  参数
+  ---------------------------------------------------------------------------
+    .   必填，一个**站内相对路径**，通常是 components/site-url.html 的输出
+        或资源的 .RelPermalink，例如：
+            本地构建  /uploads/news/x_hu_ab12.webp
+            CI 构建   /syfzsh/uploads/news/x_hu_ab12.webp
+
+  配置（hugo.toml 的 [params]）
+  ---------------------------------------------------------------------------
+    cdnBase           选填，CDN / 对象存储的根地址，默认 ""（不启用）。
+                      例：https://img.example.com
+    cdnStripBasePath  选填，默认 false。是否先把 baseURL 里的子路径剥掉再加前缀。
+
+  为什么会有 cdnStripBasePath 这个开关
+  ---------------------------------------------------------------------------
+  本站部署在 https://chihayam.github.io/syfzsh/，Hugo 输出的图片 URL 带子路径
+  （实测：HTML 里是 /syfzsh/uploads/...，而文件落在 public/uploads/...，38 处）。
+  这带来两条互斥的接法：
+
+    false（默认）—— 保留子路径。请求 https://img.example.com/syfzsh/uploads/x.webp，
+                    源站填 chihayam.github.io 即可原样命中，**不需要任何路径重写**。
+                    这是「CDN 回源 GitHub Pages」路线的零配置接法。
+    true        —— 剥掉子路径。请求 https://img.example.com/uploads/x.webp，
+                    对象 key 干净、CDN 域名将来可复用于别的站点；
+                    但源站必须把 /uploads/... 重写回 /syfzsh/uploads/...，
+                    或者镜像时直接把对象 key 写成 syfzsh/uploads/...。
+
+  外链不要走这个 partial
+  ---------------------------------------------------------------------------
+  img.html 只对站内路径调用本 partial；http(s):// 开头的外链原样输出。
+  给外链套 CDN 前缀会得到 https://img.example.com/https://other.com/a.jpg。
+*/ -}}
+{{- $u := . | default "" | string -}}
+{{- $base := site.Params.cdnBase | default "" -}}
+{{- if not $base -}}
+  {{- /* 未启用：原样返回，保证默认行为零变化 */ -}}
+  {{- $u -}}
+{{- else -}}
+  {{- $base = strings.TrimSuffix "/" $base -}}
+  {{- if site.Params.cdnStripBasePath -}}
+    {{- /* site.BaseURL 形如 https://chihayam.github.io/syfzsh/ 时 Path = /syfzsh/
+           部署在根目录时 Path = / ，TrimSuffix 后为空串，with 会跳过，等于不剥。 */ -}}
+    {{- $sub := (urls.Parse site.BaseURL).Path | strings.TrimSuffix "/" -}}
+    {{- with $sub -}}
+      {{- $u = strings.TrimPrefix . $u -}}
+    {{- end -}}
+  {{- end -}}
+  {{- printf "%s%s" $base $u -}}
+{{- end -}}

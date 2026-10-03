@@ -6,15 +6,17 @@
   否则出一个纯 CSS 的 .media-ph 色块 + 标题文字。
 
   参数（dict）：
-    page     必填，page 对象
-    alt      选填，默认取 page.Title
-    loading  选填，默认 "lazy"；首屏轮播可传 "eager"
+    page           必填，page 对象
+    alt            选填，默认取 page.Title
+    loading        选填，默认 "lazy"；首屏轮播可传 "eager"
+    fetchpriority  选填，默认 ""（不输出该属性）；首屏轮播第一张传 "high"
 */ -}}
 {{- $p := .page -}}
 {{- $alt := .alt | default $p.Title -}}
 {{- $loading := .loading | default "lazy" -}}
+{{- $fetchpriority := .fetchpriority | default "" -}}
 {{- with $p.Params.image -}}
-{{ partial "components/img.html" (dict "src" . "alt" $alt "loading" $loading "width" 600) }}
+{{ partial "components/img.html" (dict "src" . "alt" $alt "loading" $loading "fetchpriority" $fetchpriority "width" 600) }}
 {{- else -}}
 <span class="media-ph" role="img" aria-label="{{ $alt }}"><span class="media-ph-text">{{ $alt | truncate 20 }}</span></span>
 {{- end -}}
