@@ -338,61 +338,48 @@
   }
 
   /* ------------------------------------------------------------------ *
-   * 7. 主导航：移动端汉堡 + 二级手风琴
-   *    DOM: #nav-toggle(button[aria-expanded]) + #nav
-   *         + .nav-item > .sub-toggle[aria-expanded] + .sub
+   * 7. 主导航：移动端「更多」面板
+   *    DOM: #nav-more-btn(button[aria-expanded]) + #nav-more
+   *
+   *    移动端一级栏目是横向滚动条（纯 CSS，不需要 JS），只有栏尾的
+   *    「更多」面板要开关，所以这里比原来的「汉堡 + 手风琴」简单得多 ——
+   *    手风琴那套（.sub-toggle / .nav-item.is-open）已经整个拿掉了。
    *
    *    断点 1024 必须与 components.css 里 .main-nav 的媒体查询一致，
-   *    两处不一致会出现「菜单展开了但样式还是桌面版」的错位。
+   *    两处不一致会出现「面板展开了但样式还是桌面版」的错位。
    * ------------------------------------------------------------------ */
   var NAV_BP = 1024;
 
   function initNav() {
-    var toggle = document.getElementById('nav-toggle');
-    var nav = document.getElementById('nav');
-    if (!toggle || !nav) { return; }
+    var btn = document.getElementById('nav-more-btn');
+    var panel = document.getElementById('nav-more');
+    if (!btn || !panel) { return; }
 
-    function closeAllSubs() {
-      $$('.nav-item.is-open', nav).forEach(function (item) {
-        item.classList.remove('is-open');
-        var t = $('.sub-toggle', item);
-        if (t) { t.setAttribute('aria-expanded', 'false'); }
-      });
+    function setOpen(open) {
+      panel.classList.toggle('is-open', open);
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
     }
 
-    function setNav(open) {
-      nav.classList.toggle('is-open', open);
-      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
-    }
+    function isOpen() { return panel.classList.contains('is-open'); }
 
-    on(toggle, 'click', function () {
-      var open = !nav.classList.contains('is-open');
-      setNav(open);
-      if (!open) { closeAllSubs(); }
-    });
+    on(btn, 'click', function () { setOpen(!isOpen()); });
 
-    // 二级：<1024px 手风琴展开；>=1024px 由 CSS 的 hover / focus-within 接管
-    $$('.sub-toggle', nav).forEach(function (btn) {
-      on(btn, 'click', function () {
-        var item = btn.parentNode.parentNode;      // .nav-row -> .nav-item
-        var open = !item.classList.contains('is-open');
-        closeAllSubs();                            // 同级只留一个展开
-        item.classList.toggle('is-open', open);
-        btn.setAttribute('aria-expanded', open ? 'true' : 'false');
-      });
+    // 点面板以外的任何地方收起。不能只监听 document 了事：
+    // 按钮自己也在 document 内，得把它排除掉，否则 click 会先展开再被收起。
+    on(document, 'click', function (e) {
+      if (!isOpen()) { return; }
+      if (panel.contains(e.target) || btn.contains(e.target)) { return; }
+      setOpen(false);
     });
 
     on(document, 'keydown', function (e) {
-      if (e.key === 'Escape' || e.keyCode === 27) {
-        setNav(false);
-        closeAllSubs();
-      }
+      if (e.key === 'Escape' || e.keyCode === 27) { setOpen(false); }
     });
 
-    // 跨过断点时复位，否则缩放窗口会留下「半开」的菜单
+    // 跨过断点时复位，否则缩放窗口会留下「半开」的面板
     var mq = window.matchMedia('(min-width: ' + NAV_BP + 'px)');
     function reset() {
-      if (mq.matches) { setNav(false); closeAllSubs(); }
+      if (mq.matches) { setOpen(false); }
     }
     if (mq.addEventListener) { mq.addEventListener('change', reset); }
     else if (mq.addListener) { mq.addListener(reset); }

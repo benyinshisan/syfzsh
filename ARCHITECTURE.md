@@ -38,7 +38,7 @@ data/*.yaml ──→ partials/footer.html / home/friendlinks.html / components/
 | `_default/baseof.html` | 页面骨架：head / header / main / footer / scripts |
 | `partials/head.html` | meta、Open Graph、RSS、**CSS Pipes 清单**、favicon |
 | `partials/header.html` | 顶部工具条 + 站名横幅 |
-| `partials/nav.html` | 主导航（含移动端汉堡按钮） |
+| `partials/nav.html` | 主导航（移动端为横向滚动栏目条 + 「更多」面板） |
 | `partials/footer.html` | 会员名录滚动（**首页不输出**，首页已有 LOGO 墙）+ 页脚联系信息 |
 | `partials/scripts.html` | `#site-config` JSON + theme.js。**结构不要动** —— 它是 JS 读配置的唯一来源。里面每个值都跟了 `safeJS`，**别当多余删掉**：`<script>` 里的内容会被 Go 的 html/template 按 JavaScript 上下文再转义一次（不看 `type`），`jsonify` 的结果会被套上第二层引号，值里带上字面引号 → `fetch()` 解析不了 → 搜索页永远「索引加载失败」 |
 
@@ -130,9 +130,9 @@ pages.css       首页栅格、内页两栏、栏目录入、名录页（.direct
 | 函数 | 触发 | 说明 |
 |---|---|---|
 | `initTopbar()` | `#today-date` 等 | 日期、设为首页、加入收藏 |
-| `initNav()` | `#nav-toggle` + `#nav` | **移动端汉堡 + 二级手风琴**。断点 1024，必须与 CSS 一致 |
+| `initNav()` | `#nav-more-btn` + `#nav-more` | **移动端「更多」面板**的开关（含点面板外收起、Esc 收起）。断点 1024，必须与 CSS 一致 |
 | `initCarousel()` | `[data-carousel]` | 图片新闻轮播 |
-| `initMarquee()` | `[data-marquee]` | 无缝纵向滚动（通知公告 / 会员名录） |
+| `initMarquee()` | `[data-marquee]` | 无缝纵向滚动（现仅页脚会员名录；首页右栏改静态列表后不再使用） |
 | `initTabs()` | `[data-tabs]` | 四页签，支持方向键 |
 | `initSearch()` | `#search-form` | 读 `/searchindex.json` 做前端过滤 |
 | `initFilter()` | `[data-filter]` | 通用列表筛选（会员名录） |
@@ -146,7 +146,10 @@ pages.css       首页栅格、内页两栏、栏目录入、名录页（.direct
 
 ## 6. 无障碍
 
-- 导航折叠按钮带 `aria-expanded` / `aria-controls`；`Escape` 关闭
+- 移动端「更多」按钮带 `aria-expanded` / `aria-controls`；`Escape` 与点面板外均收起。
+  面板收起的写法是 `visibility: hidden`（不只是 `max-height: 0`）——
+  只靠 `max-height: 0; overflow: hidden` 的话，里面的链接**仍然能被 Tab 聚焦、
+  读屏仍会念**，等于存在一个看不见却可操作的面板
 - 页签是 `role="tab"` + `aria-selected`，支持左右方向键
 - 占位块是 `role="img"` + `aria-label`，不是空 `<img>`
   （例外：`components/member-logo.html` 的占位块是 `aria-hidden="true"` —— 会员名就在

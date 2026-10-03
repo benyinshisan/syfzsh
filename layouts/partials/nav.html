@@ -1,46 +1,42 @@
 {{- /*
   主导航
   ---------------------------------------------------------------------------
-  桌面（>=1024px）：水平排布，二级菜单 hover / focus 下拉（纯 CSS）。
-  移动（<1024px）：由 theme.js 的 initNav() 折叠为汉堡菜单，二级改手风琴。
+  桌面（>=1024px）：水平排布，一级栏目各自 hover / focus 下拉二级（纯 CSS）。
+  移动（<1024px）：一级栏目横向铺开、左右可滑，栏目名一眼看得见；
+                   二级和深层入口全部收进栏尾的「更多」面板（见 theme.js 的 initNav）。
 
-  为什么断点取 1024 而不是 768：8 个一级栏目 × 约 90px ≈ 720px，
-  在 768px 宽度下会挤爆换行，1024px 才排得开。
+  ⚠ 移动端**不再用汉堡**（2026-10 改版）。原来的做法是把整套导航折进一个
+    44px 的汉堡图标里，结果手机上前 46px 只有一条空蓝带 + 一个小图标 ——
+    商会访客里不少人根本不会去点它，等于没有导航。
+    「导航占掉一行」的代价，远小于「找不到导航」的代价。
+    横向滚动条的代价是栏上的二级下拉没了，所以才有「更多」这个面板兜底。
+
+  为什么断点取 1024 而不是 768：6 个一级栏目连着 hover 下拉一起算，
+  1024px 起排才不局促。
+
+  改栏目时记得同步 hugo.toml 的 [[menu.main]] —— 本文件不含硬编码栏目名。
 */ -}}
 {{- $cur := .RelPermalink -}}
+{{- /* 首页项判定要用 site.Home.RelPermalink，不能写 (ne .URL "/")：
+       pageRef 菜单项的 .URL 已带 baseURL 的子路径前缀（部署在 /syfzsh/ 时
+       首页项是 "/syfzsh/"），与字面量 "/" 永不相等，排除会失效 ——
+       于是每个子页面上的「首页」都跟着亮。详见 partials/components/site-url.html。 */ -}}
+{{- $home := site.Home.RelPermalink -}}
 <nav class="main-nav" aria-label="主导航">
   <div class="container nav-inner">
-
-    <button type="button" class="nav-toggle" id="nav-toggle"
-            aria-expanded="false" aria-controls="nav" aria-label="展开导航菜单">
-      <span class="nav-toggle-bar" aria-hidden="true"></span>
-      <span class="nav-toggle-bar" aria-hidden="true"></span>
-      <span class="nav-toggle-bar" aria-hidden="true"></span>
-    </button>
 
     <ul id="nav" class="nav">
       {{- range site.Menus.main }}
       {{- if not .Parent }}
-      {{- $item := . }}
-      {{- /* 当前栏目判定：①本项就是当前页 ②当前页在本项之下（栏目页与它的子孙页）。
-             ⚠ 第二条的排除项必须与 site.Home.RelPermalink 比，**不能写 (ne .URL "/")**：
-               pageRef 菜单项的 .URL 已经带了 baseURL 的子路径前缀（部署在
-               https://…/syfzsh/ 时首页项是 "/syfzsh/"），与字面量 "/" 永不相等，
-               排除失效 —— 于是每个子页面上「首页」都会跟着亮起来。
-               同源问题与完整说明见 partials/components/site-url.html。 */}}
-      {{- $home := site.Home.RelPermalink }}
+      {{- /* 当前栏目判定：①本项就是当前页 ②当前页在本项之下（栏目页与它的子孙页） */}}
       {{- $on := or (eq .URL $cur) (and (ne .URL $home) (hasPrefix $cur .URL)) }}
-      {{- $subId := printf "sub-%s" ($item.Identifier | default (printf "w%d" $item.Weight)) }}
       <li class="nav-item{{ if .HasChildren }} has-sub{{ end }}{{ if $on }} on{{ end }}">
-        <div class="nav-row">
-          <a class="nav-link" href="{{ partial "components/site-url.html" .URL }}">{{ .Name }}</a>
-          {{- if .HasChildren }}
-          <button type="button" class="sub-toggle" aria-expanded="false"
-                  aria-controls="{{ $subId }}" aria-label="展开「{{ .Name }}」子菜单"></button>
-          {{- end }}
-        </div>
+        <a class="nav-link" href="{{ partial "components/site-url.html" .URL }}">{{ .Name }}</a>
         {{- with .Children }}
-        <ul class="sub" id="{{ $subId }}">
+        {{- /* 桌面端的 hover 下拉。移动端这条被 CSS 藏起来（display:none），
+               内容改由下面的 .nav-more 面板承担 —— 两处都要留，
+               因为一个是 CSS hover、一个是 JS 面板，凑不到一起去。 */}}
+        <ul class="sub">
           {{- range . }}
           <li><a href="{{ partial "components/site-url.html" .URL }}">{{ .Name }}</a></li>
           {{- end }}
@@ -50,6 +46,27 @@
       {{- end }}
       {{- end }}
     </ul>
+
+    {{- /* 栏尾的「更多」：只在移动端出现，把所有二级栏目汇总成一个面板。
+           是 <button> 而不是链接 —— 它不导航，只开合面板。 */}}
+    <button type="button" class="nav-more-btn" id="nav-more-btn"
+            aria-expanded="false" aria-controls="nav-more">
+      <span class="nav-more-bars" aria-hidden="true"><i></i><i></i><i></i></span>
+      <span class="nav-more-label">更多</span>
+    </button>
+
+    <div class="nav-more" id="nav-more">
+      {{- range site.Menus.main }}
+      {{- if and (not .Parent) .HasChildren }}
+      <p class="nav-more-group">{{ .Name }}</p>
+      <ul class="nav-more-list">
+        {{- range .Children }}
+        <li><a href="{{ partial "components/site-url.html" .URL }}">{{ .Name }}</a></li>
+        {{- end }}
+      </ul>
+      {{- end }}
+      {{- end }}
+    </div>
 
   </div>
 </nav>

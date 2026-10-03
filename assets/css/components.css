@@ -180,21 +180,72 @@
 .nav-inner {
   display: flex;
   align-items: center;
+  /* 「更多」面板相对这一层定位，right:0 就是行内容盒的右边缘 */
+  position: relative;
 }
 
-.nav-toggle {
-  display: inline-flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 5px;
-  width: var(--tap);
+/* ---------------------------------------------------------------- *
+ * 一级栏目：横向铺开，放不下就左右滑
+ * ---------------------------------------------------------------- */
+.nav {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  overflow-x: auto;
+  scrollbar-width: none;              /* Firefox */
+  -webkit-overflow-scrolling: touch;
+}
+.nav::-webkit-scrollbar { display: none; }
+
+.nav-item { flex: 0 0 auto; }
+
+.nav-link {
+  display: flex;
+  align-items: center;
   height: var(--tap);
-  padding-inline: 10px;
-  background: transparent;
-  border: 0;
+  padding-inline: var(--sp-4);
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 600;
+  white-space: nowrap;
 }
 
-.nav-toggle-bar {
+.nav-item.on > .nav-link {
+  color: #fff;
+  box-shadow: inset 0 -3px 0 var(--c-accent);
+}
+
+/* 二级在移动端不在栏上展开 —— 内容全在「更多」面板里。
+   display:none 也顺带把它从无障碍树和 Tab 顺序里摘掉。 */
+.sub { display: none; }
+
+/* ---------------------------------------------------------------- *
+ * 栏尾的「更多」按钮
+ * ---------------------------------------------------------------- */
+.nav-more-btn {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  width: 60px;
+  height: var(--tap);
+  padding: 0;
+  background: var(--c-primary-600);
+  border: 0;
+  color: #fff;
+  font: inherit;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  cursor: pointer;
+  /* 左侧投影：把按钮从栏目条上「抬」起来，暗示右边才是收口 */
+  box-shadow: -6px 0 10px -4px rgba(0, 0, 0, 0.35);
+}
+
+.nav-more-bars { display: flex; flex-direction: column; gap: 4px; width: 18px; }
+
+.nav-more-bars i {
   display: block;
   height: 2px;
   background: #fff;
@@ -202,116 +253,88 @@
   transition: transform var(--transition), opacity var(--transition);
 }
 
-.nav-toggle[aria-expanded="true"] .nav-toggle-bar:nth-child(1) { transform: translateY(7px) rotate(45deg); }
-.nav-toggle[aria-expanded="true"] .nav-toggle-bar:nth-child(2) { opacity: 0; }
-.nav-toggle[aria-expanded="true"] .nav-toggle-bar:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+/* 展开时三条杠变叉号，跟按钮的 aria-expanded 走 */
+.nav-more-btn[aria-expanded="true"] .nav-more-bars i:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+.nav-more-btn[aria-expanded="true"] .nav-more-bars i:nth-child(2) { opacity: 0; }
+.nav-more-btn[aria-expanded="true"] .nav-more-bars i:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
 
-.nav {
-  flex: 1;
-  min-width: 0;
-  max-height: 0;
-  overflow: hidden;
-  transition: max-height 0.28s ease;
-}
-
-.nav.is-open {
-  max-height: 80vh;
-  overflow-y: auto;
-}
-
-.nav-item { border-top: 1px solid rgba(255, 255, 255, 0.12); }
-
-.nav-row { display: flex; align-items: stretch; }
-
-.nav-link {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  min-height: var(--tap);
-  padding: var(--sp-3) var(--page-gutter);
-  color: rgba(255, 255, 255, 0.9);
-  font-weight: 600;
-}
-
-.nav-item.on > .nav-row > .nav-link { color: #fff; }
-
-/* 手风琴展开箭头（纯 CSS 画的 V 形） */
-.sub-toggle {
-  position: relative;
-  flex: none;
-  width: var(--tap);
-  background: transparent;
-  border: 0;
-}
-
-.sub-toggle::before {
-  content: "";
+/* ---------------------------------------------------------------- *
+ * 「更多」面板
+ * ⚠ visibility 不能省：收起来的用法是 max-height:0 + overflow:hidden，
+ *   这样里面的链接**仍然能 Tab 到、读屏也念得出来** —— 一个看不见却能被
+ *   键盘聚焦的面板。visibility:hidden 才是真正把它摘出焦点顺序，
+ *   而且它是离散可过渡的：开 → 立刻可见，关 → 等收起动画走完才隐藏。
+ * ---------------------------------------------------------------- */
+.nav-more {
   position: absolute;
-  inset: 0;
-  margin: auto;
-  width: 8px;
-  height: 8px;
-  border-right: 2px solid rgba(255, 255, 255, 0.8);
-  border-bottom: 2px solid rgba(255, 255, 255, 0.8);
-  transform: rotate(45deg) translate(-2px, -2px);
-  transition: transform var(--transition);
-}
-
-.sub-toggle[aria-expanded="true"]::before { transform: rotate(-135deg) translate(-2px, -2px); }
-
-.sub {
+  top: 100%;
+  right: 0;
+  z-index: 60;
+  width: 260px;
+  max-width: 100%;
   max-height: 0;
   overflow: hidden;
-  background: rgba(0, 0, 0, 0.16);
-  transition: max-height 0.25s ease;
+  visibility: hidden;
+  background: var(--c-primary-700);
+  box-shadow: var(--sh-3);
+  transition: max-height 0.28s ease, visibility 0.28s;
 }
 
-.nav-item.is-open > .sub { max-height: 400px; }
+.nav-more.is-open {
+  max-height: 70vh;
+  overflow-y: auto;
+  visibility: visible;
+}
 
-.sub li a {
+.nav-more-group {
+  margin: 0;
+  padding: var(--sp-3) var(--sp-4) var(--sp-1);
+  color: rgba(255, 255, 255, 0.5);
+  font-size: var(--fs-xs);
+  letter-spacing: 0.06em;
+}
+
+.nav-more-list a {
   display: flex;
   align-items: center;
   min-height: var(--tap);
-  padding: var(--sp-2) var(--page-gutter) var(--sp-2) calc(var(--page-gutter) + var(--sp-5));
-  color: rgba(255, 255, 255, 0.8);
+  padding: var(--sp-2) var(--sp-4);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.88);
   font-size: var(--fs-sm);
 }
 
-.sub li a:hover,
-.sub li a:focus { background: rgba(255, 255, 255, 0.08); color: #fff; }
+.nav-more-list a:hover,
+.nav-more-list a:focus { background: rgba(255, 255, 255, 0.08); color: #fff; }
 
 @media (min-width: 1024px) {
-  .nav-toggle { display: none; }
+  /* 桌面端有 hover 下拉，「更多」整套不出现 */
+  .nav-more-btn,
+  .nav-more { display: none; }
 
   .nav {
-    display: flex;
     flex-wrap: wrap;
-    max-height: none;
     overflow: visible;
   }
 
-  .nav-item { position: relative; border-top: 0; }
-  .nav-row { display: block; }
+  .nav-item { position: relative; }
 
   .nav-link {
     justify-content: center;
     height: var(--header-h);
-    min-height: 0;
     padding-inline: var(--sp-4);
   }
 
   .nav-link:hover,
   .nav-link:focus { background: var(--c-primary-600); }
 
-  .nav-item.on > .nav-row > .nav-link {
+  .nav-item.on > .nav-link {
     background: var(--c-primary-600);
     box-shadow: inset 0 -3px 0 var(--c-accent);
   }
 
-  .sub-toggle { display: none; }
-
   .sub {
+    display: block;                 /* 覆盖移动端的 display:none */
     position: absolute;
     top: 100%;
     left: 0;
@@ -336,7 +359,8 @@
   }
 
   .sub li a {
-    min-height: 0;
+    display: flex;
+    align-items: center;
     padding: var(--sp-3) var(--sp-4);
     color: var(--c-ink-2);
   }
