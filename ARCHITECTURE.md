@@ -1,7 +1,7 @@
 # 架构说明
 
 面向要改模板的人。使用说明看 [README.md](README.md)，目录地图看 [STRUCTURE.md](STRUCTURE.md)，
-CMS 机制看 [CMS.md](CMS.md)，写内容看 [WRITING.md](WRITING.md)。
+写内容看 [WRITING.md](WRITING.md)，专题分析看 [docs/](docs/README.md)。
 
 ## 1. 设计基调
 
@@ -107,7 +107,7 @@ data/*.yaml ──→ partials/footer.html / home/friendlinks.html / components/
 2. 让上面的栏目汇总把它排除掉
 
 `type` 漏写会**静默**退回 `_default/single.html`：外观退化，且会员页混进文章列表。
-迁移脚本与 CMS 生成器都默认写入该字段。
+`archetypes/members.md` 与批量导入脚本 `scripts/import-members.mjs` 都会写入该字段。
 
 ## 4. CSS 分层
 

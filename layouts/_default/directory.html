@@ -3,8 +3,8 @@
   ---------------------------------------------------------------------------
   数据源是**本栏目下的会员内容页**（content/members/directory/<slug>.md），
   不再是 data/members.yaml —— 数据文件不产生页面，会员就拿不到独立网址。
-  新增会员：CMS「会员天地 → 会员单位」新建，或跑
-            node scripts/import-members.mjs 批量导入一份名单。
+  新增会员：新建 content/members/directory/<别名>.md（字段照 archetypes/members.md），
+            或跑 node scripts/import-members.mjs --from 名单.txt 批量导入。
 
   ⚠ 筛选由 theme.js 的 initFilter 驱动，它有两个写死的约定，改版式时别破坏：
     1) 条目必须是 <li>（initFilter 里是 $$('li', list)）；
@@ -15,7 +15,7 @@
 {{ define "main" }}
 {{ partial "components/breadcrumb.html" . }}
 
-{{- /* 顺序由后台「会员天地 → 会员排序」控制，与首页 LOGO 墙、页脚名录共用一份 */ -}}
+{{- /* 顺序＝各会员页自己的 weight（Hugo 原生排序），与首页 LOGO 墙、页脚名录共用同一个 partial */ -}}
 {{- $members := partial "components/member-pages.html" . }}
 <div class="inner-layout">
   <div class="inner-main">
@@ -45,7 +45,7 @@
         <p class="empty-tip" id="member-empty" style="display:none">没有匹配的会员单位。</p>
         {{- else }}
         <p class="empty-tip">
-          本栏目下还没有会员页。请在 CMS 的「会员天地 → 会员单位」新建，
+          本栏目下还没有会员页。新建 <code>content/members/directory/&lt;别名&gt;.md</code>，
           或运行 <code>node scripts/import-members.mjs</code> 批量导入一份名单。
         </p>
         {{- end }}

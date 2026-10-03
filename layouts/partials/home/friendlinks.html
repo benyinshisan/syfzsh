@@ -2,8 +2,7 @@
   友情链接（数据来自 data/friendlinks.yaml）
   ---------------------------------------------------------------------------
   ⚠ YAML 的顶层键本身就是分组标题，下面直接把它当 <dt> 渲染。
-    因此 static/admin/config.yml 里 data-friendlinks 集合的字段 name
-    必须与那三个键一字不差；改标题要同时改 YAML 与 config.yml 两处。
+    改分组标题就改 data/friendlinks.yaml 的键名，本模板不用动。
 */ -}}
 {{- with hugo.Data.friendlinks }}
 <div class="friendlinks">

@@ -7,8 +7,8 @@
 #    是「示意图」而不是这家公司真实的门店/产品/证书。
 #    正式发布前请**删除本文件**，或把它替换成真实会员的信息：
 #        rm content/members/directory/jincheng-youpin.md
-#        npm run members:order     ← 别漏这步：它在「会员排序」名单里占了位，
-#                                    不跑的话名单里会留一条对不上的条目，构建会打 WARN
+#        （删了就完事 —— 会员顺序完全由各会员页自己的 weight 决定，没有要同步的名单，
+#          也不需要再跑任何脚本）
 #    图片来源清单见 WRITING.md 第七节（其中「线下门店」一张是 CC BY-SA 3.0，
 #    必须在页面上署名 —— 那行署名在正文末尾，换图后请一并删掉）。
 #
@@ -23,6 +23,7 @@ slug: jincheng-youpin
 linkTitle: 金城优品
 
 date: 2026-09-27T09:00:00+08:00
+weight: 10
 
 # 单位 LOGO。三处使用：名录卡片、首页 LOGO 墙、本页页头。
 # 本站占位图，纯图形、不含任何真实机构信息。
@@ -64,8 +65,6 @@ contact: 王经理
 phone: 0931-0000000
 address: 甘肃省兰州市城关区示意路 000 号
 
-categories:
-  - members
 type: member
 ---
 

@@ -6,7 +6,6 @@ draft: false
 summary: "9月30日，兰州市青联、兰州市龙狮运动协会、兰州市商业发展商会等5家单位带着价值14万余元的爱心物资，走进七里河区龚家湾第一小学慰问全校教职工。"
 image: "/uploads/news/20260930-gongjiawan-heying.jpg"
 source: "每日甘肃网"
-categories: ["news"]
 tags: ["爱心慰问", "龚家湾第一小学", "公益活动"]
 featured: true
 ---

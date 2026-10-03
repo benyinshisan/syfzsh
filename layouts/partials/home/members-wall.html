@@ -5,12 +5,12 @@
   独占一行的 LOGO 墙。
 
   数据源＝会员内容页 content/members/directory/，与名录页同一份内容：
-  后台新建一个会员，名录页与首页墙同时出现，本模板不用改。
+  新加一个会员页，名录页与首页墙同时出现，本模板不用改。
   每格链到**该会员自己的页面**（/members/directory/<slug>/）。
 
-  顺序**不在这里决定** —— 取自 components/member-pages.html，也就是后台
-  「会员天地 → 会员排序」那份名单（data/members_order.yaml）。名录页与页脚
-  会员名录调的是同一个 partial，所以三处顺序不可能分叉。
+  顺序**不在这里决定** —— 取自 components/member-pages.html，也就是 Hugo 的
+  原生排序（各会员页自己的 weight）。名录页与页脚会员名录调的是同一个 partial，
+  所以三处顺序不可能分叉。
 
   为什么必须共用：首页墙只取前 N 家（membersWall.count），名录页取全部。
   如果两处各自取数，一旦顺序不一致，看的人会以为墙上漏了几家。

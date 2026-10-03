@@ -6,7 +6,6 @@ draft: false
 summary: "9月30日，兰州市青年联合会联合兰州市龙狮运动协会、兰州市商业发展商会等多家爱心单位走进七里河区龚家湾第一小学，开展“国庆暖心慰问”公益活动，累计投入爱心物资总价值14万余元，为全校94名教职工送上节日慰问与祝福。"
 image: "/uploads/news/20260930-qinglian-zuotan.jpg"
 source: "兰州共青团"
-categories: ["news"]
 tags: ["爱心慰问", "青联委员公益行", "公益活动"]
 featured: true
 ---

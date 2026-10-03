@@ -2,25 +2,28 @@
 
 每个目录放什么、谁往里写、改了会怎样。**换内容看第 1 节，改样式看第 2 节，怕踩坑看第 3 节。**
 （使用说明见 [README.md](README.md)，模板机制见 [ARCHITECTURE.md](ARCHITECTURE.md)，
-后台见 [CMS.md](CMS.md)，怎么写内容见 [WRITING.md](WRITING.md)。）
+怎么写内容见 [WRITING.md](WRITING.md)，专题分析见 [docs/](docs/README.md)。）
 
 ## 0. 一眼看全
 
 ```
 content/      ← 你要填的内容（文章、会员、栏目说明）
-data/         ← 栏目配置与会员名单（YAML，不是文章）
+data/         ← 栏目配置（YAML，不是文章）
 layouts/      ← 页面长什么样的模板（改这里要懂 Hugo）
 assets/       ← 样式、JS、图片原图（会被 Hugo 处理）
-static/       ← 原样拷贝的文件：后台上文件、站点图标
-scripts/      ← 辅助脚本（生成后台配置、导入会员、排序…）
-archetypes/   ← 命令行建稿骨架（`hugo new` 用，后台不读）
+static/       ← 原样拷贝的文件：站点图标、还没迁进 assets/ 的老图
+scripts/      ← 辅助脚本（启动 Hugo、批量导入会员、离线版收尾）
+archetypes/   ← 新建内容时的字段骨架（`hugo new` 用）
 hugo.toml     ← 唯一主配置（站点参数、导航、栏目）
 public/ 等    ← 构建产物，**都可再生、不要手改、不进 git**
 ```
 
+> 本站**没有后台**：内容一律用编辑器直接改文件，改完提交、推送，CI 自动发布。
+> 字段含义、图片放哪、正文插图版式都写在 [WRITING.md](WRITING.md)。
+
 ## 1. 内容：`content/`
 
-**谁往里写：** 你（或后台编辑同事）。格式是 Markdown + front matter。
+**谁往里写：** 你（用编辑器直接改文件）。格式是 Markdown + front matter。
 
 | 目录 | 放什么 | 前台对应 |
 |---|---|---|
@@ -63,21 +66,20 @@ public/ 等    ← 构建产物，**都可再生、不要手改、不进 git**
 |---|---|---|
 | `content/**`、`data/**` | 内容 | 正常，这就是给你改的 |
 | `layouts/**`、`assets/css/**`、`assets/js/**`、`hugo.toml` | 手写代码/配置 | 正常，改完重新构建即生效 |
-| **`static/admin/config.yml`** | **生成物** | 手改会在下次跑 `npm run cms:config` 时**被覆盖**。要改就改生成器 `scripts/gen-cms-config.mjs`，再跑一次 |
-| **`static/admin/sidebar-groups.css`** | **生成物** | 同上 |
-| `static/admin/decap-cms.js` | 第三方内置（5MB） | 别动。升级用 `npm run cms:vendor` |
-| `data/members_order.yaml` | 半生成：可手拖，脚本也会重写 | 想批量调顺序跑 `npm run members:order`；手改也行，它是给人看的名单 |
 | `public/` `public-local/` `public-check/` `resources/` | 构建产物 | 全部可再生，已 gitignore，**不要手改、不要提交** |
+
+> 仓库里已经没有「跑脚本会被覆盖」的源文件了 —— 原先唯一那类文件是「内容后台」的
+> 生成配置，它已随后台一起移除。剩下的「生成物」只有构建产物本身。
 
 ### 3.2 别碰清单
 
 - **`hugo.local.toml`** 不是废弃文件：它给「双击就能看的离线版」用（`npm run build:local`
   → `public-local/`）。**不要拿它的产物去部署**，部署只用 `npm run build`。
-- **`static/uploads/`** 现在是空目录（只剩占位文件）。图片实际都在 `assets/uploads/` 下，
-  两者都会发布到同一个 `/uploads/` 网址 —— 往哪写图片，看 `hugo.toml` 的 `[module.mounts]` 注释。
+  （⚠ 离线版目前有个既有的路径 bug，见 [docs/README.md](docs/README.md) 末尾。）
+- **`assets/uploads/` 与 `static/uploads/` 的区别**：见第 6 节。往哪写图片别凭感觉。
 - **仓库根的 `hugo.exe`（约 64MB）** 是本地开发用的二进制，**已在 .gitignore 里**，不会被提交。
-- `archetypes/` 的三个模板**只在命令行 `hugo new` 时生效**；后台 `/admin/` 新建不读它们，
-  后台表单由 `scripts/gen-cms-config.mjs` 生成。两条路各有一套，改字段要改生成器。
+- `archetypes/` 的三个模板**只在命令行 `hugo new` 时生效**；直接用编辑器新建文件也行，
+  把字段照抄过去即可。**字段的权威说明是 [WRITING.md](WRITING.md)**，模板注释与它同步。
 
 ### 3.3 几个「静默出错」的坑（不报错，只是结果不对）
 
@@ -85,6 +87,8 @@ public/ 等    ← 构建产物，**都可再生、不要手改、不进 git**
   `data/home.yaml` 的各 `xxxSection`、`hugo.toml` 的 `[[params.homeTabs]]`。漏一处不报错。
 - **一页只能用一次 `.Paginator`**（另一个调用会静默拿到同一份缓存）。
 - **漏填 front matter 字段是静默降级**：少个日期顺序就变了、少个封面图列表里就没图。
+- **会员顺序＝每个会员页自己的 `weight`**，而 `weight` 写 `0` 或省略会排到**最后**（不是最前），
+  且有并列时会落到 date / linkTitle 兜底键上。约定用不重复的正整数、留空隙 —— 见 WRITING.md。
 
 ## 4. 配置与数据
 
@@ -92,40 +96,44 @@ public/ 等    ← 构建产物，**都可再生、不要手改、不进 git**
 |---|---|---|
 | `hugo.toml` | 唯一主配置：站点基本信息、`[[menu.main]]` 导航、页脚联系信息、四页签、分页条数、图片挂载 | Hugo 本身 |
 | `data/home.yaml` | 首页各版块的标题、条数、数据来源栏目 | `partials/home/` 的五个版块（featured / headline / industry / members-wall / members-news） |
-| `data/friendlinks.yaml` | 首页「友情链接」 | `partials/home/friendlinks.html` |
+| `data/friendlinks.yaml` | 首页「友情链接」（顶层键就是分组标题） | `partials/home/friendlinks.html` |
 | `data/partners.yaml` | 内页右栏「合作机构」 | `partials/components/sidebar.html` |
-| `data/members_order.yaml` | **会员展示顺序的唯一来源** | `partials/components/member-pages.html`（名录页 / 首页 LOGO 墙 / 页脚滚动都经它取数） |
+
+> 会员展示顺序**不在 `data/` 里**，也没有单独的顺序文件：它由每个会员页自己的
+> `weight` 决定，`partials/components/member-pages.html` 直接返回 Hugo 的原生排序。
 
 ## 5. 脚本：`scripts/`
 
 | 脚本 | 干什么 | npm 命令 |
 |---|---|---|
-| `hugo.mjs` | 跨平台找到 Hugo 再启动（优先仓库根的 `hugo.exe`，其次 PATH） | 被 `dev` / `build` 间接调用 |
-| `gen-cms-config.mjs` | 生成后台配置与左栏样式 | `npm run cms:config` |
-| `sync-member-order.mjs` | 把现有会员与 `members_order.yaml` 对齐（不改变现有顺序，只补新会员） | `npm run members:order`（`-- --dry-run` 只看不改） |
-| `import-members.mjs` | 一次性：把 YAML 名单批量建成会员内容页。**没有默认输入文件**（迁移用的 `data/members.yaml` 已随改版删除，会员已导入完），留着是当范例。要再用必须显式给文件 | `npm run members:import -- --from 名单.yaml` |
-| `vendor-decap.mjs` | 把 Decap CMS 前端内置到 `static/admin/`（不依赖 CDN） | `npm run cms:vendor` |
+| `hugo.mjs` | 跨平台找到 Hugo 再启动（优先仓库根的 `hugo.exe`，其次 PATH） | 被 `dev` / `build` / `build:local` 间接调用 |
+| `import-members.mjs` | 批量把名单建成会员内容页（权重自动接在现有最大值之后）。**没有默认输入文件**，要显式给 `--from` | `npm run members:import -- --from 名单.yaml` |
 | `fix-offline-html.mjs` | 「双击可看版」收尾：修 `public-local/` 里的路径 | 被 `build:local` 调用 |
 
-## 6. 后台：`static/admin/`
+> **没有依赖要装**：`package.json` 的 `devDependencies` 已空，`npm install` 不再需要
+> （直接 `node scripts/…` 或 `./hugo` 也能跑，npm 只是省得敲长命令）。
 
-| 文件 | 性质 |
-|---|---|
-| `index.html`、`editor-components.js`、`preview.js` | 手写 |
-| `config.yml`、`sidebar-groups.css` | **生成物**（改生成器，别手改） |
-| `decap-cms.js`、`decap-cms.js.LICENSE.txt` | 内置的第三方前端，别动 |
+## 6. 图片：`assets/uploads/` 与 `static/uploads/`
 
-后台是**纯静态文件**，Hugo 不会给它做子路径处理 —— 所以里面的路径必须写相对形式
-（`../images/…`），写死 `/images/…` 会落到账号根站上去。
+两条路都会发布到同一个 `/uploads/…` 网址，但处理方式不同：
+
+| 放哪 | 会被 Hugo 处理吗 | 适用 |
+|---|---|---|
+| `assets/uploads/<栏目>/` | **会**：缩放 + 转 WebP + 补宽高（防 CLS） | 正常情况，图片都放这里 |
+| `static/uploads/<栏目>/` | 不会，原样发布 | 只用于「老图慢慢搬」的过渡 |
+
+- 引用时写 `/uploads/<栏目>/<文件名>`（前导斜杠可有可无），模板 `components/img.html` 负责处理。
+- `hugo.toml` 的 `assets/uploads → static/uploads` 挂载会把**原图也发布一份**，这是给
+  `og:image`（分享缩略图）与 `img.html` 的 fallback 分支（SVG / GIF / assets 里找不到的图）
+  用的 —— 删掉它这两处会 404。详见 `hugo.toml` 里 `[module.mounts]` 的注释。
 
 ## 7. 其它
 
 | 路径 | 说明 |
 |---|---|
-| `.github/workflows/hugo.yaml` | CI：构建并发布到 GitHub Pages（pin 死 Hugo/Node 版本，`TZ=Asia/Shanghai`） |
-| `static/images/` | 站点图标与后台标识（`favicon.gif`、`cms-logo.svg`） |
-| `package.json` | 只有命令与一个开发依赖（`decap-server`），**不参与前端构建** |
-| `node_modules/`、`package-lock.json` | 本地装 Decap 本地编辑用，已 gitignore |
+| `.github/workflows/hugo.yaml` | CI：构建并发布到 GitHub Pages（pin 死 Hugo 版本，`TZ=Asia/Shanghai`；纯 Hugo 构建，不装 Node） |
+| `static/images/` | 站点图标（`favicon.gif`） |
+| `package.json` | 只有几条 `npm run` 便利命令，**无依赖、不参与前端构建** |
 
 ---
 

@@ -12,7 +12,7 @@
   空出来的右栏位置改放「会员动态」（partials/home/members-news.html），
   它原先占首页一整行，现已撤下。
 
-  各版块的数据来源全部在 data/home.yaml 里配置（后台：「首页 → ② 首页各版块」），
+  各版块的数据来源全部在 data/home.yaml 里配置，
   本文件不含硬编码栏目。
   ⚠ 页脚的会员滚动名录在首页不输出（partials/footer.html）—— 上面的 LOGO 墙
     与会员动态已经把会员名单铺开了，页脚再滚一遍是冗余。
@@ -50,7 +50,7 @@
     </div>
   </div>
 
-  {{- /* 首页正文：content/_index.md 的正文渲染在此，可在 CMS 里直接编辑 */ -}}
+  {{- /* 首页正文：content/_index.md 的正文渲染在此（直接改那个文件） */ -}}
   {{- with .Content }}
   <div class="container home-content">{{ . }}</div>
   {{- end }}

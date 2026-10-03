@@ -1096,7 +1096,7 @@
 }
 
 /* ---- Markdown 正文插图（layouts/_default/_markup/render-image.html） ----
-   版式由 Markdown title 位的 layout= 关键字决定，后台「正文插图」组件自动写入。
+   版式由 Markdown title 位的关键字决定（wide / left / right / plain，写法见 WRITING.md）。
    钩子只在图片独占一段（.IsBlock）时输出 <figure>，夹在句中的图仍是裸 <img>。 */
 .md-figure { margin: var(--sp-5) 0; }
 

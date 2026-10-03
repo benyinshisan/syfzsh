@@ -2,10 +2,9 @@
 # 会员单位（公司）的模板 —— 只用于 content/members/directory/ 下的条目
 #
 # ⚠ 这个文件只在命令行建稿时生效：
-#     ./hugo.exe new content members/directory/qiye-mingcheng.md
-#   后台（/admin/）新建会员**不读**这里 —— 后台表单由
-#   scripts/gen-cms-config.mjs 生成，字段顺序与下面的注释一一对应。
-#   日常录名单走后台即可，两种写法产出的 front matter 是一样的。
+#     ./hugo new content members/directory/qiye-mingcheng.md
+#   直接用编辑器新建文件当然也可以 —— 把下面的字段与注释照抄过去即可。
+#   批量录一份名单用：node scripts/import-members.mjs --from 名单.txt
 #
 # 会员是「条目」不是「文章」：没有标签、来源、首页轮播、草稿这些字段，
 # 网址也是长期稳定的（/members/directory/<别名>/，不带日期）。
@@ -58,15 +57,14 @@ photosHonor: []     # 资质 / 荣誉（⚠ 公示证照前先征得企业同意
 
 date: {{ .Date }}
 
-# 排序权重：**不用填**，后台表单里也已经看不到这一项了。
-# 会员的展示顺序（首页 LOGO 墙 / 名录页 / 页脚名录）由后台
-# 「会员天地 → 会员排序」那份可拖拽名单统一决定，见 CMS.md §5.2。
-# 它只剩一个兜底作用：没排进名单的会员按 weight 排序，而新录的会员没有 weight，
-# 所以一律落在末尾 —— 这正是我们要的，因此不要填。
-# weight: 100
-
-# 一级栏目的目录名。不要改。
-categories: [members]
+# 排序权重：**会员展示顺序的唯一来源**（首页 LOGO 墙 / 名录页 / 页脚名录三处
+# 共用 layouts/partials/components/member-pages.html，它直接返回 Hugo 的原生
+# 排序＝weight 升序 → date 降序 → linkTitle）。
+# 约定：**互不相同的正整数，并留空隙**（10、20、30……），插队时取空位即可。
+# ⚠ 实测坑：weight 写 0 或干脆不写，Hugo 会把该页排在**所有正权重之后**，不是
+#   最前 —— 想让这位会员排第一，得给它一个比所有人都小的正整数。
+# 新建时先看一眼名录里最后一位的 weight，取比它大 10 的值。
+weight: 100
 
 # ⚠ 固定为 member，不要改：它决定前台用 layouts/member/single.html 渲染，
 #   并让会员页不被当成文章混进 /members/ 的文章列表。
@@ -82,5 +80,5 @@ type: member
 
   ⚠ 但**厂区、门店、产品、证书这类「一组成组」的图，请填在上面的三个
     photosXxx 字段里**，不要塞进正文 —— 放在字段里前台会排成整齐的网格，
-    而且顺序可以拖动调整；塞进正文得自己一张张调位置。
+    而且顺序就是你写在字段里的先后，不用自己一张张调位置。
 -->

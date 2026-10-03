@@ -2,15 +2,9 @@
 # 新闻类文章的模板（通知公告 / 商会动态 / 行业资讯 / 媒体报道 / 政策法规 / 党群工作）
 #
 # ⚠ 这个文件只在命令行建稿时生效：
-#     ./hugo.exe new content news/notice/wo-de-biaoti.md
-#   后台（/admin/）新建文章**不读**这里 —— 后台的表单由
-#   scripts/gen-cms-config.mjs 生成，字段顺序与下面的注释一一对应。
-#   日常发稿走后台即可，两种写法产出的 front matter 是一样的。
-#
-# 栏目与 categories 的对应关系（填错不会报错，只会让文章在后台列表里“消失”）：
-#   news/notice、news/association、news/industry、news/media  → [news]
-#   policy/*                                                  → [policy]
-#   party/*                                                   → [party]
+#     ./hugo new content news/notice/wo-de-biaoti.md
+#   直接用编辑器新建文件当然也可以 —— 把下面的字段与注释照抄过去即可。
+#   一篇稿子进哪个栏目，看的是**它放在哪个目录**（目录见 WRITING.md 的栏目一览）。
 title: "{{ replace .File.ContentBaseName "-" " " | title }}"
 
 # 网址别名。必填，只能小写字母、数字、连字符（jiangong-2026）。
@@ -36,14 +30,12 @@ summary: ""
 # source: ""                # 转载或供稿方，如「兰州日报」
 
 # 勾上后进入首页顶部轮播 —— 用的就是上面那张「列表封面图」。
-# 轮播取几条在后台「首页 → ② 首页各版块」里调。
+# 轮播取几条在 data/home.yaml 的 featured.count 里调。
 featured: false
 
 # 草稿。勾上时前台不显示这篇；发布前记得取消。
 draft: true
 
-# 一级栏目的目录名。不要改。
-categories: [news]
 ---
 
 正文内容……
@@ -69,6 +61,5 @@ categories: [news]
 
 ⚠ 「浮动」只在大屏（≥768px）生效，手机上自动回到居中。
 
-日常发稿不用手写这些 —— 后台正文工具栏点「添加组件」→「正文插图」，
-图片、说明、版式是三个填空，写出来的就是上面这行语法。
+写正文时直接照上面这行语法手写即可；引号里不写关键字就是居中。
 -->

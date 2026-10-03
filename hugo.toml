@@ -15,8 +15,8 @@ hasCJKLanguage = true
 enableRobotsTXT = true
 summaryLength  = 120
 
-# categories 只作为 Decap CMS 的过滤器使用（见 static/admin/config.yml），
-# 不需要生成 /categories/ 归档页，故关闭分类法输出。
+# 本站不生成分类法归档页：栏目由 content/ 的目录结构与主导航决定，不需要
+# /categories/ 或 /tags/ 页面（tags 字段仍然保留 —— 站内搜索索引在用它）。
 disableKinds = ["taxonomy", "term"]
 
 # 输出：首页额外产出 JSON 搜索索引（layouts/index.searchindex.json）
@@ -31,12 +31,18 @@ disableKinds = ["taxonomy", "term"]
   notAlternative = true
 
 # 图片放在 assets/uploads/ 里，Hugo 才能缩放 + 转 WebP + 补上宽高（防 CLS）。
-# 但 assets/ 里的文件默认**不发布**，而后台的媒体库是浏览器里跑的 —— 它只能
-# 通过 /uploads/... 这个网址去取图，取不到就整片缩略图全是破图。
+# 但 assets/ 里的文件默认**不发布**，只有被处理过的派生图会进产物 —— 而下面
+# 两条链路要的是**原图**，拿不到就 404：
+#   1) layouts/partials/head.html 的 og:image：它直接用 front matter 里的
+#      /uploads/xxx.jpg 原文当分享缩略图，不经图片处理（派生图文件名带哈希，
+#      本来就换不出稳定 URL）；
+#   2) layouts/partials/components/img.html 的 fallback 分支：SVG、GIF（刻意不
+#      转码，避免丢动画）以及 assets/ 里找不到的文件，都按原路径直出。
 # 所以这里额外挂一条：把 assets/uploads 同时当作静态文件发布一份原图。
 #
-# 代价是 public/ 里原图和 WebP 各存一份（构建产物，不占 git）。访客拿到的仍然
-# 是页面里引用的 WebP，原图只有后台上传/预览时才会请求。
+# 代价是 public/ 里原图与 WebP 各存一份 —— 实测原图副本约 16MB，占整站 24MB
+# 的三分之二（构建产物，不占 git）。⚠ 它不是给「已删除的后台」用的，删掉它会
+# 立刻让分享卡片与上面第 2 条链路出 404。
 #
 # ⚠ 一旦写了 [[module.mounts]]，Hugo 的默认挂载会被整体替换掉，
 #   所以必须把用到的目录一个不落地列全（本仓库没有 i18n/ 目录，故不列）。
@@ -116,7 +122,7 @@ disableKinds = ["taxonomy", "term"]
   #   所以离线构建必须让 cdnBase 保持为空。
   #   （另：离线构建本身的路径问题是既有 bug，与 cdnBase 无关，见
   #     docs/IMAGES-AND-OSS.md 「离线预览版是坏的」一节。）
-  # 完整分析（费用、阈值、备案约束、为什么不建议 CMS 直传）见
+  # 完整分析（费用、阈值、备案约束、图片该存哪里）见
   # docs/IMAGES-AND-OSS.md。
   cdnBase           = ""
   cdnStripBasePath  = false
@@ -148,8 +154,7 @@ disableKinds = ["taxonomy", "term"]
 
   # ---- 首页版块 ----------------------------------------------------------
   # ⚠ 首页各版块的**标题、条数、数据来源栏目**不在这个文件里，已挪到
-  #   data/home.yaml —— 后台「首页 / 首页版块」编辑的就是它。
-  #   那是个 YAML 文件，改它不用动代码，也不会像 TOML 那样被后台重写丢注释。
+  #   data/home.yaml。那是个 YAML 文件，改它不用动代码。
   #   见 README 的 §3.4。
 
   # ---- 页脚会员名录条 ----------------------------------------------------
@@ -205,8 +210,8 @@ disableKinds = ["taxonomy", "term"]
 #  ⚠ 改栏目时必须同改四处，漏一处就会导航出现空白项或构建报错：
 #    1. content/<一级>/_index.md 与每个二级目录的 _index.md（目录必须存在）
 #    2. 本段 [[menu.main]]（一级给 identifier，二级用 parent 关联）
-#    3. data/home.yaml 里的各 xxxSection（首页版块配置已从本文件迁到那里，
-#       后台「首页 / 首页版块」编辑的就是它；hugo.toml 里没有 [params.home] 了）
+#    3. data/home.yaml 里的各 xxxSection（首页版块配置已从本文件迁到那里；
+#       hugo.toml 里没有 [params.home] 了）
 #    4. [[params.homeTabs]] 里的各 section
 ##############################################################################
 [[menu.main]]

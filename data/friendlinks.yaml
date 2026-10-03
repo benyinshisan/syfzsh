@@ -1,9 +1,7 @@
 # 友情链接（首页底部，按分组渲染）
 #
 # ⚠ 顶层键本身就是分组标题，layouts/partials/home/friendlinks.html 直接把它当标题渲染。
-#   因此 static/admin/config.yml 里 data-friendlinks 集合的字段 name
-#   必须与下面这三个键一字不差；改标题要同时改本文件与 config.yml 两处。
-# 注意：用 CMS 保存后本文件的注释会丢失。
+#   改分组标题就改这里的键名，模板不用动。
 协会站点:
   - name: "示例协会站点一"
     url: "https://example.com"

@@ -4,7 +4,7 @@
   {{- /* ---------- 会员滚动名录（数据源＝会员内容页 content/members/directory/） ----------
        首页已经有会员 LOGO 墙，同一页再滚一遍同样的名单是冗余，故首页不输出。
        ⚠ 每个名字链接到**该会员自己的页面**（旧版全部指向名录页，等于白链）。
-       ⚠ 顺序取自 components/member-pages.html（后台「会员天地 → 会员排序」控制），
+       ⚠ 顺序取自 components/member-pages.html（Hugo 原生排序＝各会员页的 weight），
          与首页 LOGO 墙、名录页三处共用一份顺序。 */ -}}
   {{- if not .IsHome }}
   {{- with partial "components/member-pages.html" . }}

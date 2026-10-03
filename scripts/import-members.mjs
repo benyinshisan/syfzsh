@@ -5,7 +5,7 @@
  * 背景：会员原先只是 data/members.yaml 里的一串名字。数据文件**不产生页面**，
  * 所以那种形态下会员拿不到独立网址、也没有 LOGO / 简介的位置。改成
  * content/members/directory/<slug>.md 之后，每个会员是一个正常内容页：
- * 有网址、能在 CMS 里编辑、会进站内搜索。
+ * 有网址、能直接改文件、会进站内搜索。
  *
  * 用法：
  *   node scripts/import-members.mjs --from 名单.txt      # 读纯文本，一行一个
@@ -20,13 +20,13 @@
  *   YAML  取顶层 members: 下的列表项（只认 "…" / '…' / 裸值 三种写法）
  *   TXT   一行一个名称，# 开头为注释；想自己指定网址别名就写「名称|slug」
  *
- * ⚠ 默认**不覆盖**已存在的文件：会员页一旦在后台补过 LOGO / 简介，重跑本脚本
- *   不该把它冲掉。确实要重建用 --force。
+ * ⚠ 默认**不覆盖**已存在的文件：会员页一旦补过 LOGO / 简介，重跑本脚本不该把它
+ *   冲掉。确实要重建用 --force。
  * ⚠ 默认 slug 是 member-01 这样的序号，网址会是 /members/directory/member-01/。
- *   建议在后台逐个改成有意义的别名（如 lanzhou-maoyi）——**发布后改别名等于换
- *   网址**，原有链接会失效，所以要改就趁早改。
+ *   建议趁早改成有意义的别名（如 lanzhou-maoyi）——**发布后改别名等于换网址**，
+ *   原有链接会失效。改别名只需改 front matter 里的 `slug:`（文件名不必跟着改）。
  */
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 
@@ -105,11 +105,31 @@ if (badSlug.length) {
 }
 
 /*
+  排序权重：会员的展示顺序（首页 LOGO 墙 / 名录页 / 页脚名录）**只由各会员页的
+  weight 决定**，见 layouts/partials/components/member-pages.html。约定是正整数、
+  互不相同、且留空隙（10、20、30……），所以这里接在**现有最大值之后**按 10 递增，
+  新导入的会员一律排在末尾，也不会与已有会员撞号。
+  ⚠ weight 写 0 或不写会被 Hugo 排到所有正权重之后 —— 那就不是「排末尾」而是
+    「和所有没写 weight 的挤在一起」，所以必须显式写正整数。
+*/
+function nextBaseWeight() {
+  if (!existsSync(outDir)) return 10;
+  let max = 0;
+  for (const name of readdirSync(outDir)) {
+    if (!name.endsWith('.md') || name.startsWith('_')) continue;   // _index.md 是栏目页，不参与
+    const m = readFileSync(path.join(outDir, name), 'utf8').match(/^weight:\s*(\d+)\s*$/m);
+    if (m) max = Math.max(max, Number(m[1]));
+  }
+  return max + 10;
+}
+
+/*
   收录日期用**运行当天**，不能写死也不能只写日期：
     · 写死 → 换一份名单重跑时，日期还是旧的；
     · 只写 2026-09-27 → Hugo 当成 UTC 午夜，在 UTC+8 就是当天 08:00 之前
       构建时属于「未来文章」而被静默丢弃 —— 表现是刚导入的会员页不出现，
       构建日志里一个字都没有。
+（上面这两条与排序无关，别顺手删。）
 */
 const pad = (n) => String(n).padStart(2, '0');
 const today = new Date();
@@ -122,8 +142,7 @@ linkTitle: ${yamlStr(name)}
 type: member
 date: ${stamp}
 weight: ${weight}
-categories: ["members"]
-summary: "占位会员单位，请在后台替换为真实企业信息。"
+summary: "占位会员单位，正式发布前请替换为真实企业信息。"
 # ---- 以下字段留空不影响构建，补上后前台自动显示 ----
 # image: "/uploads/members/example.png"   # 企业 LOGO，留空时渲染 CSS 占位块
 # industry: "批发零售"                     # 单位类型 / 所属行业
@@ -135,13 +154,15 @@ summary: "占位会员单位，请在后台替换为真实企业信息。"
 
 此处于「会员天地 / 会员单位」的企业介绍。
 
-> 本文为占位内容，可在后台「会员天地 → 会员单位」中编辑，或直接修改
-> \`content/members/directory/${slug}.md\`。发布前请替换为真实企业信息。
+> 本文为占位内容，直接修改 \`content/members/directory/${slug}.md\` 即可。
+> 发布前请替换为真实企业信息。
 `;
 
 if (!dryRun && !existsSync(outDir)) mkdirSync(outDir, { recursive: true });
 
 let created = 0, skipped = 0;
+/* 只算一次：以现有会员的最大 weight 为基准，本批新建的依次 +10 */
+const baseWeight = nextBaseWeight();
 for (const [i, entry] of entries.entries()) {
   const file = path.join(outDir, `${entry.slug}.md`);
   if (existsSync(file) && !force) {
@@ -150,10 +171,10 @@ for (const [i, entry] of entries.entries()) {
     continue;
   }
   if (dryRun) {
-    console.log(`· 将生成 ${entry.name}  →  content/members/directory/${entry.slug}.md`);
+    console.log(`· 将生成 ${entry.name}  →  content/members/directory/${entry.slug}.md  (weight: ${baseWeight + i * 10})`);
     continue;
   }
-  writeFileSync(file, page(entry, i + 1), 'utf8');
+  writeFileSync(file, page(entry, baseWeight + i * 10), 'utf8');
   created++;
 }
 
@@ -163,6 +184,6 @@ console.log(
     : `\n✓ 新建 ${created} 个会员页，跳过 ${skipped} 个已存在的。\n  目录：${path.relative(repoRoot, outDir)}/`
 );
 if (created) {
-  console.log('  下一步：后台「会员天地 → 会员单位」逐个补 LOGO / 行业 / 简介，');
+  console.log('  下一步：逐个补 LOGO / 行业 / 简介（直接改文件，见 WRITING.md），');
   console.log('         并把 member-01 这类序号别名改成有意义的网址别名（发布后改会换网址）。');
 }
