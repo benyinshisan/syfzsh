@@ -31,15 +31,15 @@ const out = path.join(repoRoot, 'static', 'admin', 'config.yml');
  */
 const sections = [
   { group: '新闻中心', items: [
-    { name: 'news-notice',      label: '通知公告', dir: 'news/notice',      cat: 'news', desc: '本会发布的各类通知、公告与征求意见稿。（另：本栏是首页右栏「通知公告」滚动栏的数据源）' },
-    { name: 'news-association', label: '商会动态', dir: 'news/association', cat: 'news', desc: '本会的会议、走访、合作等工作动态。（另：本栏是首页「商会动态」头条区的数据源）' },
-    { name: 'news-industry',    label: '行业资讯', dir: 'news/industry',    cat: 'news', desc: '行业层面的资讯与要闻。（另：本栏是首页「行业资讯」卡的数据源）' },
-    { name: 'news-media',       label: '媒体报道', dir: 'news/media',       cat: 'news', desc: '媒体对本会及行业的报道。（另：本栏是首页四页签「媒体报道」的数据源）' },
+    { name: 'news-notice',      label: '通知公告', dir: 'news/notice',      cat: 'news', desc: '本会发布的各类通知、公告与征求意见稿。（另：首页左上「新闻中心」块会连同本栏一起混排）' },
+    { name: 'news-association', label: '商会动态', dir: 'news/association', cat: 'news', desc: '本会的会议、走访、合作等工作动态。（另：首页左上「新闻中心」块会连同本栏一起混排）' },
+    { name: 'news-industry',    label: '行业资讯', dir: 'news/industry',    cat: 'news', desc: '行业层面的资讯与要闻。（另：本栏同时是首页「行业资讯」卡与「新闻中心」块的数据源）' },
+    { name: 'news-media',       label: '媒体报道', dir: 'news/media',       cat: 'news', desc: '媒体对本会及行业的报道。（另：本栏同时是首页四页签「媒体报道」与「新闻中心」块的数据源）' },
   ]},
   { group: '会员天地', items: [
     { name: 'members-directory', label: '会员单位', dir: 'members/directory', cat: 'members', members: true,
       desc: '会员单位名单，一条目一页。保存后同时出现在首页 LOGO 墙、名录页与页脚滚动条上。' },
-    { name: 'members-dynamics', label: '会员动态', dir: 'members/dynamics', cat: 'members', desc: '会员单位的最新动态。（另：本栏是首页「会员动态」整行的数据源）' },
+    { name: 'members-dynamics', label: '会员动态', dir: 'members/dynamics', cat: 'members', desc: '会员单位的最新动态。（另：本栏是首页行一右栏「会员动态」的数据源）' },
     { name: 'members-services', label: '会员服务', dir: 'members/services', cat: 'members', desc: '面向会员的培训、咨询与对接服务。（另：本栏是首页四页签「会员服务」的数据源）' },
   ]},
   /*
@@ -585,19 +585,13 @@ const home = `
             fields:
               - {label: 标题, name: title, widget: string, required: false, hint: 图片新闻横跨全部栏目，没有对应的栏目页可取标题，所以在这里填}
               - {label: 条数, name: count, widget: number, value_type: int, required: false, hint: 取最近这么多篇。「上哪些文章」由文章自己的「首页图片新闻」开关决定，不在这里}
-          - label: 商会动态（头条 + 列表）
+          - label: 新闻中心（头条 + 列表）
             name: headline
             widget: object
+            hint: 默认取整个「新闻中心」，四个子栏目的文章会一起按日期混排。
             fields:
-              - {label: 取哪个栏目, name: section, widget: select, options: ${sectionSelect}, hint: ⚠ 选错不会报错，只会让这个版块在首页整个消失}
-              - {label: 条数, name: count, widget: number, value_type: int, required: false, hint: 第 1 条作头条，其余作下面的列表}
-          - label: 通知公告（滚动栏）
-            name: notice
-            widget: object
-            fields:
-              - {label: 取哪个栏目, name: section, widget: select, options: ${sectionSelect}, hint: ⚠ 选错不会报错，只会让这个版块在首页整个消失}
-              - {label: 条数, name: count, widget: number, value_type: int, required: false}
-              - {label: 滚动区高度, name: marqueeHeight, widget: number, value_type: int, required: false, hint: 单位 px。⚠ 这是**移动端的兜底高度**，桌面端由布局算出；滚动逻辑靠容器的确定高度判断「内容够不够一屏」，别当装饰随意改}
+              - {label: 取哪个栏目, name: section, widget: select, options: ${sectionSelect}, hint: ⚠ 这一栏会**连同子栏目**一起取（选 news 就是整个新闻中心，四个子栏目的文章混排）。选错不会报错，只会让这个版块在首页整个消失}
+              - {label: 条数, name: count, widget: number, value_type: int, required: false, hint: 这是**列表**的条数。第 1 条另外作头条（只出标题），所以这一栏最多显示「这个数 + 1」篇}
           - label: 行业资讯
             name: industry
             widget: object
@@ -610,12 +604,13 @@ const home = `
             fields:
               - {label: 标题, name: title, widget: string, required: false}
               - {label: 条数, name: count, widget: number, value_type: int, required: false, hint: ⚠ 只展示前几家，其余在「会员名录」页里（版块右上角「查看名录」）。填 0 = 全部展示。数据来自「会员天地 / 会员单位」的内容页，不是文章。⚠ 墙是自动分列的，列数随窗口宽度变，所以填 9 在宽屏上可能是「一行 7 家 + 第二行 2 家」，不是齐整的一行}
-          - label: 会员动态（整行）
+          - label: 会员动态（首页右栏）
             name: membersNews
             widget: object
+            hint: 位置是行一右栏（原「通知公告」滚动栏的位置），静态列表，不滚动。
             fields:
               - {label: 取哪个栏目, name: section, widget: select, options: ${sectionSelect}, hint: ⚠ 选错不会报错，只会让这个版块在首页整个消失}
-              - {label: 条数, name: count, widget: number, value_type: int, required: false, hint: 整行宽度能排下多列，可比上面几张卡多给几条}
+              - {label: 条数, name: count, widget: number, value_type: int, required: false, hint: 这里是**总条数**（本栏没有头条，不像「新闻中心」要 +1）。右栏是窄栏且不滚动，条数别给太多}
       # ----------------------------------------------------------------------
       - name: friendlinks
         label: ③ 友情链接（首页底部）

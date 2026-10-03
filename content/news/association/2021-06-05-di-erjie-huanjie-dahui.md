@@ -7,7 +7,7 @@ draft: false
 summary: "6月5日，兰州市商业发展商会第二届换届大会在兰州召开，李强当选会长，李鹏当选秘书长。会议回顾了商会自2016年4月成立以来的工作，并就带动中小微商业企业、推出惠企举措、融通创新发展等作了部署。"
 categories: ["news"]
 tags: ["换届大会", "商会要闻"]
-featured: false
+featured: true
 # image: "/uploads/news/example.jpg"   # 留空时模板渲染 CSS 占位图块
 ---
 

@@ -1,12 +1,22 @@
-{{- /* 商会动态：1 条头条（标题 + 摘要）+ N 条列表；参数见 data/home.yaml */ -}}
+{{- /*
+  新闻中心：1 条头条（只出标题）+ N 条列表；参数见 data/home.yaml。
+
+  ⚠ 取的是**整个栏目**：用 .RegularPagesRecursive 把该栏目下所有子栏目的文章
+     一并捞进来按日期混排。所以 data/home.yaml 里填 `news` 得到的不是四个空的
+     子栏目页，而是「商会动态 + 通知公告 + 行业资讯 + 媒体报道」四栏合并的流。
+     指向叶子栏目（如 news/notice）时它等价于 .RegularPages，也一样成立。
+
+  ⚠ 头条只出标题，**不出摘要**（2026-10 起）。这块与图片新闻、会员动态同行，
+     摘要动辄两三行，一撑就把整行顶高。层级改由 components.css 的
+     .headline-title 用字号 + 分隔线拉开。
+*/ -}}
 {{- $cfg := hugo.Data.home | default dict -}}
 {{- $c := $cfg.headline | default dict -}}
-{{- $secPath := $c.section | default "news/association" -}}
+{{- $secPath := $c.section | default "news" -}}
 {{- $count := $c.count | default 8 -}}
 {{- with site.GetPage $secPath -}}
 {{- $sec := . -}}
-{{- $pages := .RegularPages.ByDate.Reverse -}}
-{{- with $pages }}
+{{- with .RegularPagesRecursive.ByDate.Reverse }}
 {{- $head := index . 0 -}}
 {{- $list := first $count (after 1 .) -}}
 <div class="headline-box card">
@@ -15,12 +25,8 @@
   <div class="headline-title">
     <a href="{{ $head.RelPermalink }}" title="{{ $head.Title }}">{{ $head.Title | truncate 40 }}</a>
   </div>
-  <div class="headline-summary">
-    {{- with $head.Params.summary }}{{ . | plainify | truncate 110 }}{{ else }}{{ $head.Summary | plainify | truncate 110 }}{{ end }}
-    <a class="more" href="{{ $head.RelPermalink }}">[详细]</a>
-  </div>
 
   {{ partial "components/news-list.html" (dict "pages" $list) }}
 </div>
-{{- end }}
-{{- end }}
+{{- end -}}
+{{- end -}}

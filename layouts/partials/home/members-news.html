@@ -1,28 +1,25 @@
 {{- /*
-  会员动态（首页整行）
+  会员动态（首页右栏）
   ---------------------------------------------------------------------------
-  与「行业资讯」拆开：会员动态不再和行业资讯挤在行二的双栏里，而是与 LOGO 墙
-  一起构成首页的「会员天地」区，独占一行、宽屏多列。
+  2026-10 改版：本栏原来占首页一整行（与 LOGO 墙一起构成「会员天地」区），
+  现移到行一右栏 —— 也就是原「通知公告」滚动栏的位置。原「通知公告」栏
+  已并入左上的「商会动态」块（见 headline.html），首页不再单列。
 
-  count 见 data/home.yaml 的 membersNews.count —— 整行宽度能排下多列，
-  所以给的条数比行二那几张卡多。
+  ⚠ 与占整行时相比，这里有两处刻意的差别：
+    1. 列表是**静态**的，不再用 data-marquee 无缝滚动 —— 右栏窄，滚动条
+       反而让人读不完整条标题；条数也因此从 12 降到 5。
+    2. 不再套 .news-cols 多列（那是给整行宽度用的），右栏单列即可。
+
+  count 见 data/home.yaml 的 membersNews.count。
 */ -}}
 {{- $cfg := hugo.Data.home | default dict -}}
 {{- $c := $cfg.membersNews | default dict -}}
 {{- $secPath := $c.section | default "members/dynamics" -}}
-{{- $count := $c.count | default 12 -}}
+{{- $count := $c.count | default 5 -}}
 {{- with site.GetPage $secPath -}}
 {{- $sec := . -}}
-{{- with first $count .RegularPages.ByDate.Reverse }}
-<div class="home-row home-row-m2 container">
-  <div class="card">
-    {{ partial "components/section-head.html" (dict "title" $sec.Title "href" $sec.RelPermalink) }}
-    {{- /* news-cols：≥768px 把这条长列表拆成多列。不拆的话十来条会在一整行
-           的宽度里拉成一条又长又稀的细带子（见 components.css）。 */ -}}
-    <div class="news-cols">
-      {{ partial "components/news-list.html" (dict "pages" .) }}
-    </div>
-  </div>
+<div class="side-card card members-news-card">
+  {{ partial "components/section-head.html" (dict "title" $sec.Title "href" $sec.RelPermalink) }}
+  {{ partial "components/news-list.html" (dict "pages" (first $count .RegularPages.ByDate.Reverse) "empty" "暂无会员动态") }}
 </div>
-{{- end }}
-{{- end }}
+{{- end -}}

@@ -1,17 +1,21 @@
 {{- /*
   首页
   ---------------------------------------------------------------------------
-  版块顺序（会员天地整体提到行一之后，且占满两行）：
-    ① 行一：图片新闻 + 商会动态 | 右 通知公告
+  版块顺序：
+    ① 行一：图片新闻 + 新闻中心 | 右 会员动态
     ② 行 m1：会员 LOGO 墙（整行）
-    ③ 行 m2：会员动态（整行，≥768px 内部多列）
-    ④ 行二：行业资讯 + 四页签 | 右栏 搜索/快捷入口/合作机构
-    ⑤ 首页正文（content/_index.md）+ 友情链接 + 页脚
+    ③ 行二：行业资讯 + 四页签 | 右栏 搜索/快捷入口/合作机构
+    ④ 首页正文（content/_index.md）+ 友情链接 + 页脚
+
+  2026-10 改版：原行一右栏的「通知公告」滚动栏取消，左中的块改成取整个
+  「新闻中心」——四个子栏目的文章一并混排，见 partials/home/headline.html；
+  空出来的右栏位置改放「会员动态」（partials/home/members-news.html），
+  它原先占首页一整行，现已撤下。
 
   各版块的数据来源全部在 data/home.yaml 里配置（后台：「首页 → ② 首页各版块」），
   本文件不含硬编码栏目。
-  ⚠ 页脚的会员滚动名录在首页不输出（partials/footer.html）—— 上面两行已经
-    把会员名单与动态铺满了，页脚再滚一遍是冗余。
+  ⚠ 页脚的会员滚动名录在首页不输出（partials/footer.html）—— 上面的 LOGO 墙
+    与会员动态已经把会员名单铺开了，页脚再滚一遍是冗余。
 */ -}}
 {{ define "main" }}
 <main class="site-main">
@@ -28,17 +32,14 @@
       {{ partial "home/headline.html" . }}
     </div>
     <div class="col-a-side">
-      {{ partial "home/notice.html" . }}
+      {{ partial "home/members-news.html" . }}
     </div>
   </div>
 
-  {{- /* ② 会员 LOGO 墙 */ -}}
+  {{- /* ② 会员 LOGO 墙（整行） */ -}}
   {{ partial "home/members-wall.html" . }}
 
-  {{- /* ③ 会员动态 */ -}}
-  {{ partial "home/members-news.html" . }}
-
-  {{- /* ④ 行二 */ -}}
+  {{- /* ③ 行二 */ -}}
   <div class="home-row home-row-b container">
     <div class="col-b-main">
       {{ partial "home/industry.html" . }}
@@ -54,7 +55,7 @@
   <div class="container home-content">{{ . }}</div>
   {{- end }}
 
-  {{- /* ⑤ 友情链接 */ -}}
+  {{- /* ④ 友情链接 */ -}}
   {{ partial "home/friendlinks.html" . }}
 
 </main>

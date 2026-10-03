@@ -59,7 +59,7 @@ data/*.yaml ──→ partials/footer.html / home/friendlinks.html / components/
 
 | 文件 | 对应 |
 |---|---|
-| `index.html` | 首页，8 个版块 partial（版块本体在 `partials/home/`） |
+| `index.html` | 首页，7 个版块 partial（版块本体在 `partials/home/`） |
 | `_default/list.html` | 栏目页，**自动判别一级/二级**（见下） |
 | `_default/single.html` | 文章页 |
 | `member/single.html` | 会员单位详情页，由 `type: member` 命中（见下） |

@@ -11,18 +11,22 @@
 
 /* ==========================================================================
  * 首页
- * 行一：图片新闻 + 商会动态 | 通知公告
+ * 行一：图片新闻 + 新闻中心（含四个子栏目）| 会员动态
  * 行 m1：会员 LOGO 墙（整行）
- * 行 m2：会员动态（整行，宽屏多列）
  * 行二：行业资讯 + 四页签 | 搜索 / 快捷入口 / 合作机构
  *
- * ⚠ 行一左右两列底边对齐，靠的是「右栏卡片撑满列高 + 滚动区吃掉剩余高度」，
- *   不是两边各自定高 —— 见下面 @media (min-width:1024px) 里那三条规则。
- *   左列高度是流体的（图片轮播 4:3 随视口变），任何写死的右侧高度都只会在
- *   某一个视口宽度下恰好对齐。
+ * ⚠ 行一三张卡底边对齐，靠的是「卡片撑满列高」——左列轮播是 4:3、高度随
+ *   视口变，任何写死的右侧高度都只会在某一个宽度下恰好对齐。
+ *   撑满的是**卡片背景**，不是条目：列表条目该多高就多高，行距不跟着列高变。
+ *   见下面 @media (min-width:1024px) 那几条。
  * ========================================================================== */
 .site-main { padding-block: var(--gap); }
 
+/* ⚠ 行容器**不给 gap**：行一是「图片新闻 | 新闻中心 | 会员动态」拼成的一条
+   连续带子，三栏之间不留缝（见下面 @media 里的 .home-row-a）。
+   行二同理保持原来的紧贴。
+   窄屏 .home-row-a 是 flex column，那时才补一个 gap —— 上下堆叠的三张卡
+   不留缝会糊成一整块，分不出是三栏。 */
 .home-row { margin-bottom: var(--gap); }
 
 .col-a-main,
@@ -37,6 +41,12 @@
   display: grid;
   gap: var(--gap);
   align-content: start;
+  /* 必须显式写 minmax(0, 1fr)。只给 grid-template-rows 的话，列是隐式 auto 轨道，
+     轨道会被子项的 min-content 撑开：会员动态那张卡里的新闻标题是
+     white-space: nowrap，min-content 有 367px，于是 320px 的窄栏被顶成 367px，
+     整张卡向右捅出容器 47px，跟下面所有卡片的右边缘对不齐。
+     minmax(0, …) 把轨道的最小值钉死，nowrap 的标题改由 .news-link 自己截断。 */
+  grid-template-columns: minmax(0, 1fr);
 }
 
 /* 侧栏里的第一个卡片不再需要额外上边距 */
@@ -48,16 +58,19 @@
   .home-row-b {
     display: grid;
     grid-template-columns: minmax(0, 1fr) var(--side-w);
-    /* 这里**不写** align-items: start：那会让右栏回到内容高度、底边错开，
-       而拉伸（grid 默认值）正是行一两列对齐的前提。 */
+    /* align-items 用默认的 stretch（右栏容器铺满行高）。容器铺满不等于卡片
+       铺满 —— 卡片的实际高度由 .col-a-side 的 align-content: start 决定，
+       见下面那条规则。 */
   }
 
   /* 行一左半边再切一刀：图片新闻 | 商会动态。
      1.15fr : 1fr —— 纯文字的商会动态比图片轮播还宽是权重倒挂。 */
   .col-a-main { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); }
 
-  /* 右栏只有一张卡，让它独占的那一行铺满列高；align-content 必须同时改，
-     否则上面的 start 会把这唯一一行压回内容高度，拉伸就白做了。 */
+  /* 行一三张卡（图片新闻 / 商会动态 / 会员动态）底边对齐。
+     左边两张天然就是等高 —— 它们是 .col-a-main 这个栅格的同一行，栅格项
+     默认拉伸。右栏是另一个栅格，得显式让它铺满行高：行高由左列决定，
+     右栏卡片跟着长。 */
   .col-a-side {
     grid-template-rows: minmax(0, 1fr);
     align-content: stretch;
@@ -66,29 +79,60 @@
   .col-a-side > .card {
     display: flex;
     flex-direction: column;
-    /* 左列最矮也高于这个值；留着是为了窄栏时不至于把通知公告压成一条缝 */
-    min-height: 260px;
+    min-height: 200px;
+    /* 栅格项默认 min-width:auto，会被 nowrap 标题的 min-content 顶宽，
+       越过轨道右边缘。见上面 col-a-side 的注释。 */
+    min-width: 0;
   }
 
-  /* 通知公告的滚动区吃掉卡片剩余高度。
-     flex-basis 必须是 0 而不是 auto：basis:auto 会让滚动区的固有高度反过来
-     参与决定行高，形成「行高 ↔ 滚动区高度」的循环依赖；basis:0 让它对固有
-     高度的贡献为 0，行高就完全由左列（内容可预测）决定。
-     height:auto 覆盖 components.css 里 .marquee 的固定高度 —— 但那边**不能删**：
-     <1024px 走单列堆叠，没有可参照的拉伸高度，仍要用 --marquee-h 兜底。
-     滚动判定（theme.js initMarquee 的 unit <= root.clientHeight）读的是布局算出
-     的确定高度，不受影响。
-     ⚠ 占位期通知公告只有 3 条，底部会留白；真实内容（noticeCount = 10）填满后
-       即消失。别为了消这块白把 height 写死 —— 那等于把两列底边重新错开。 */
-  .col-a-side .marquee {
+  /* 多出来的高度由**卡片背景**吃下，条目本身保持原样 —— 一行就是一行，
+     行距不跟着列高变。只剩 3 条会员动态时，卡片底部会留一块空白，
+     那是刻意的：条目稀疏时把行距撑开只会更像坏掉。
+     flex-basis 给 0 而不是 auto：basis:auto 会让列表的固有高度反过来参与
+     决定行高，形成「行高 ↔ 列表高度」的循环依赖。
+     ⚠ 只在 >=1024px 生效：窄屏三张卡是上下堆叠的，各自内容高度，
+        没有可参照的拉伸高度。 */
+  .col-a-side .news-list {
     flex: 1 1 0;
     min-height: 0;
-    height: auto;
+  }
+
+  /* ---- 行一三栏拼成一条连续的白带子 --------------------------------
+     图片新闻 | 新闻中心 | 会员动态 之间不留缝，相邻两张卡共用一条分隔线，
+     只有整条带子的左右两端是圆角。要的是「一整个版块、内部切成三栏」，
+     不是三张各自带圆角阴影的卡并排放。
+
+     ⚠ 不能只把 gap 改成 0 就完事，那样会露出两种破绽：
+       ① 每张卡自己的 border-radius: 8px —— 两个圆角挨在一起，
+          接缝上下一各留一个透明月牙缺口；
+       ② 每张卡自己的 1px 边框 —— 两条并排叠成 2px 的深线，
+          比卡片内部的分隔线粗一倍。
+     所以内边直角化、只留一条边框、阴影整体挪到行容器上
+     （.home-row-a 的 border-box 恰好等于三张卡拼起来的外框）。 */
+  .home-row-a { gap: 0; box-shadow: var(--sh-1); border-radius: var(--r-md); }
+  .home-row-a .col-a-main { gap: 0; }
+
+  .home-row-a .col-a-main > .card,
+  .home-row-a .col-a-side > .card {
+    border-radius: 0;
+    box-shadow: none;
+    /* 每张卡都去掉右边的框线，由右邻卡自己的左边线充当分隔线 ——
+       这样每条缝上正好一条线，不多不少。最后一张（会员动态）在下面补回来。 */
+    border-right: 0;
+  }
+
+  /* 带子的两端保留圆角：左端是图片新闻，右端是会员动态 */
+  .home-row-a .col-a-main > .card:first-child {
+    border-radius: var(--r-md) 0 0 var(--r-md);
+  }
+  .home-row-a .col-a-side > .card {
+    border-radius: 0 var(--r-md) var(--r-md) 0;
+    border-right: 1px solid var(--c-line);
   }
 }
 
-/* <1024px 走单列堆叠，顺序就是 DOM 顺序：图片新闻 → 商会动态 → 通知公告。
-   ⚠ 曾经这里有一条 `.col-a-side { order: -1 }`，想把时效性最强的通知公告提到最前。
+/* <1024px 走单列堆叠，顺序就是 DOM 顺序：图片新闻 → 商会动态 → 会员动态。
+   ⚠ 曾经这里有一条 `.col-a-side { order: -1 }`，想把右栏提到最前。
      结果是手机上图片新闻被压到第三屏（用户反馈：「图片新闻应该在第 1 个」）。
      不要再用 order 调整这里的顺序 —— 要换顺序就改 layouts/index.html 的 DOM，
      这样读屏、打印、无 CSS 时的顺序也跟着一起对。 */
@@ -96,6 +140,7 @@
   .home-row-a {
     display: flex;
     flex-direction: column;
+    gap: var(--gap);
   }
 }
 
@@ -106,7 +151,7 @@
 /* 首页各版块卡片的间距由父栅格的 gap 负责，这里不再叠加 margin */
 .featured-box,
 .headline-box,
-.notice-card,
+.members-news-card,
 .tabs { margin: 0; }
 
 
