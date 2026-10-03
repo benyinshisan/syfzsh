@@ -1,6 +1,7 @@
 # 架构说明
 
-面向要改模板的人。使用说明看 [README.md](README.md)，CMS 机制看 [CMS.md](CMS.md)。
+面向要改模板的人。使用说明看 [README.md](README.md)，目录地图看 [STRUCTURE.md](STRUCTURE.md)，
+CMS 机制看 [CMS.md](CMS.md)，写内容看 [WRITING.md](WRITING.md)。
 
 ## 1. 设计基调
 
