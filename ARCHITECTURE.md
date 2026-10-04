@@ -11,10 +11,12 @@
    右侧快捷入口、四页签 —— 全部来自 `hugo.toml` 或 `data/*.yaml`。模板只负责摆放。
 2. **标题只有一处真相。** 首页板块标题不用字面量，而是 `site.GetPage $section` 取
    `.Title`，所以改 `_index.md` 就够了，不会出现「首页写 A、栏目页写 B」。
-3. **零运行时依赖。** 没有 jQuery、没有构建工具链、没有 npm 依赖参与前端。
-   `assets/js/theme.js` 是唯一一份 JS，ES5 语法，浏览器直接执行。
+3. **零运行时依赖（一个例外）。** 没有 jQuery、没有构建工具链、没有 npm 依赖参与前端。
+   `assets/js/theme.js` 是唯一的**手写** JS（ES5 语法，浏览器直接执行）；唯一例外是
+   站内搜索的检索引擎 —— vendored 的 `assets/js/vendor/flexsearch.min.js`（Apache-2.0，
+   已在包里 minify，无构建步骤），且**只在搜索页加载**。
 
-模板总量约 1400 行 Go template + 4 个 CSS 文件 + 1 个 JS 文件。
+模板总量约 1400 行 Go template + 4 个 CSS 文件 + 1 个手写 JS（+ 1 个 vendored 库）。
 
 ## 2. 数据流
 
@@ -41,7 +43,7 @@ data/*.yaml ──→ partials/footer.html / home/friendlinks.html / components/
 | `partials/header.html` | 顶部工具条 + 站名横幅 |
 | `partials/nav.html` | 主导航（移动端为横向滚动栏目条 + 「更多」面板） |
 | `partials/footer.html` | 会员名录滚动（**首页不输出**，首页已有 LOGO 墙）+ 页脚联系信息 |
-| `partials/scripts.html` | `#site-config` JSON + theme.js。**结构不要动** —— 它是 JS 读配置的唯一来源。里面每个值都跟了 `safeJS`，**别当多余删掉**：`<script>` 里的内容会被 Go 的 html/template 按 JavaScript 上下文再转义一次（不看 `type`），`jsonify` 的结果会被套上第二层引号，值里带上字面引号 → `fetch()` 解析不了 → 搜索页永远「索引加载失败」 |
+| `partials/scripts.html` | `#site-config` JSON + theme.js（**搜索页还多一个 vendored FlexSearch**，`if eq .Layout "search"` 控制，别挪到全站）。**结构不要动** —— 它是 JS 读配置的唯一来源。里面每个值都跟了 `safeJS`，**别当多余删掉**：`<script>` 里的内容会被 Go 的 html/template 按 JavaScript 上下文再转义一次（不看 `type`），`jsonify` 的结果会被套上第二层引号，值里带上字面引号 → `fetch()` 解析不了 → 搜索页永远「索引加载失败」 |
 
 ### 组件（跨页面复用）
 
@@ -126,7 +128,9 @@ pages.css       首页栅格、内页两栏、栏目录入、名录页（.direct
 
 ## 5. JS 模块（assets/js/theme.js）
 
-单个 IIFE，`ready()` 里依次初始化：
+一个手写 IIFE（ES5 语法，浏览器直接执行），`ready()` 里依次初始化。唯一的第三方 JS 是
+**vendored FlexSearch**（`assets/js/vendor/flexsearch.min.js`，Apache-2.0，来源与版本见同目录
+`README.txt`）—— 它**只在搜索页加载**，其余页面一行都不多背。
 
 | 函数 | 触发 | 说明 |
 |---|---|---|
@@ -135,8 +139,25 @@ pages.css       首页栅格、内页两栏、栏目录入、名录页（.direct
 | `initCarousel()` | `[data-carousel]` | 图片新闻轮播 |
 | `initMarquee()` | `[data-marquee]` | 无缝纵向滚动（现仅页脚会员名录；首页右栏改静态列表后不再使用） |
 | `initTabs()` | `[data-tabs]` | 四页签，支持方向键 |
-| `initSearch()` | `#search-form` | 读 `/searchindex.json` 做前端过滤 |
+| `initSearch()` | `#search-form` | 站内搜索：优先读**内联**索引（`#search-index`），拿不到才 `fetch` `/searchindex.json`；用 FlexSearch 检索（详见下） |
 | `initFilter()` | `[data-filter]` | 通用列表筛选（会员名录） |
+
+### 搜索的检索链路（改动前先读这段）
+
+1. **索引**：`layouts/partials/search-index-data.html` 是**唯一**的字段定义，两处消费 ——
+   独立的 `/searchindex.json`（fetch 兜底）与搜索页内联的 `<script id="search-index">`。
+2. **为什么内联**：离线双击版（`file://`）下 `fetch` 被 CORS 拦死，只有内联能搜。
+   代价是内联索引（~34KB 原始 / ~7.4KB gzip）只出现在搜索页。
+3. **编码器**：用 FlexSearch 内置的 `Charset.CJK`，即**逐字切**。实测单词查询召回与原来的
+   字符子串持平，同字假阳性略高（「会员单位」24 条 vs 22 条）。
+4. **多词查询必须自己切词**：内置编码器配原生 `search()` 对「商会 动态」是 **0 命中**，
+   所以 `initSearch()` 自己按空白切词，再对每个词检索。
+5. **排序是自己做的**：FlexSearch 的 `enrich` 结果**不返回打分**，多字段也只是分组返回，
+   所以字段加权用 RRF（倒数排名融合）自行融合；`SEARCH_FIELDS` 里的 `_member` 是会员条目的
+   占位正文，单独低权重（0.25），避免「企业」这类查询被 21 条重复模板文淹没。
+6. **降级**：`window.FlexSearch` 缺失时退回字符子串匹配（fail-open）。
+7. **提质方向**：把编码器换成 bigram 函数（十来行，**不需要分词库**）—— 实测换掉后召回与
+   自研原型完全一致。换之前先跑固定查询集对照。
 
 两个约定：
 

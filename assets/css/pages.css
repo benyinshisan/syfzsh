@@ -460,6 +460,13 @@
   font-size: var(--fs-sm);
 }
 
+/* 命中词高亮：由 theme.js 的 snippet() 生成（<mark>），底色用站点的暖金强调色 */
+.search-result .excerpt mark {
+  padding: 0 2px;
+  background: var(--c-accent-100);
+  color: inherit;
+}
+
 
 /* ==========================================================================
  * 404

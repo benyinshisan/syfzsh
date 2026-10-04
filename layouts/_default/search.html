@@ -1,6 +1,12 @@
-{{- /* 站内搜索页：索引由 Hugo 生成的 /searchindex.json 提供，前端过滤见 assets/js/theme.js */ -}}
+{{- /* 站内搜索页：索引优先由本页**内联**提供，前端检索见 assets/js/theme.js 的 initSearch()。
+     为什么要内联：离线双击版（file://）下 fetch 会被 CORS 拦死，只有内联才搜得了；
+     独立的 /searchindex.json 仍然生成，作为拿不到内联时的兜底（fetch 路径）。
+     ⚠ safeJS 不能省：Go 的 html/template 会按 JS 上下文把 <script> 里的内容
+       二次转义（不看 type），不加就成了一串带字面引号的文本。详见 partials/scripts.html。 */ -}}
 {{ define "main" }}
 {{ partial "components/breadcrumb.html" . }}
+{{- $idx := partial "search-index-data.html" . }}
+{{- if $idx }}<script id="search-index" type="application/json">{{ $idx | jsonify | safeJS }}</script>{{ end }}
 
 <div class="inner-layout">
   <div class="inner-main">

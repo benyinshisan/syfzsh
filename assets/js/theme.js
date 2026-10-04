@@ -237,8 +237,37 @@
   }
 
   /* ------------------------------------------------------------------ *
-   * 5. 站内搜索（读取 Hugo 生成的 /searchindex.json）
+   * 5. 站内搜索
+   *    数据：Hugo 生成的 searchindex.json；搜索页还会把**同一份索引内联**在
+   *          <script id="search-index" type="application/json"> 里，优先用它 ——
+   *          离线双击版（file://）下 fetch 会被 CORS 拦死，只有内联才搜得了。
+   *    检索：vendored FlexSearch（assets/js/vendor/flexsearch.min.js，Apache-2.0）
+   *
+   *    ⚠ 编码器目前用 FlexSearch 内置的 Charset.CJK（**逐字切**），这是暂定方案。
+   *      实测（41 篇真实语料、10 个查询）：单词查询召回与原来的字符子串持平，
+   *      同字假阳性略高（「会员单位」24 条 vs 22 条）；而**多词查询必须靠下面的
+   *      自己切词** —— 内置编码器配原生 search 对「商会 动态」是 0 命中。
+   *      将来提质：把 buildEngines() 里的 encoder 换成 bigram 函数（十来行，
+   *      不需要任何分词库），实测换掉后召回与自研原型完全一致。改之前先跑固定
+   *      查询集对照，别无依据地换。
+   *
+   *    ⚠ FlexSearch 没加载出来时降级为字符子串匹配（fail-open，与本站
+   *      「JS 一挂内容不能消失」的约定一致）。
    * ------------------------------------------------------------------ */
+  /* 检索字段与权重。_member 是会员条目的**占位正文**：21 条几乎同一段模板文字，
+     单独放一个低权重索引，避免「企业」「会员」这类查询被占位文淹没；会员的
+     标题 / 简称 / 标签 / 栏目仍然满权重，所以「会员单位」这种查询照样排前面。 */
+  var SEARCH_FIELDS = [
+    ['title',      3],
+    ['linkTitle',  3],
+    ['tags',       2],
+    ['section',    2],
+    ['content',    1],
+    ['_member',    0.25]
+  ];
+  var SEARCH_RRF = 60;      /* RRF（倒数排名融合）常数 */
+  var SEARCH_LIMIT = 1000;  /* 每个字段取多少条候选 */
+
   function initSearch(cfg) {
     var form = document.getElementById('search-form');
     if (!form) { return; }
@@ -246,11 +275,12 @@
     var input = document.getElementById('search-input');
     var box = document.getElementById('search-results');
     var indexUrl = cfg.searchIndex || 'searchindex.json';
-    var cache = null;
+    var pages = null;       /* 索引条目 */
+    var engines = null;     /* FlexSearch 索引集合，首次检索时构建 */
 
     function esc(s) {
-      return String(s).replace(/[&<>"]/g, function (c) {
-        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+      return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
       });
     }
 
@@ -263,39 +293,132 @@
       return q;
     }
 
-    function render(pages, q) {
-      if (!pages.length) {
+    /* 查询按空白切词。FlexSearch 的编码器只管「切字」，不管「切词」，实测
+       整串「商会 动态」在内置 CJK 编码器下 0 命中 —— 所以切词得自己做。 */
+    function termsOf(q) {
+      return String(q || '').trim().split(/\s+/).filter(function (t) { return t; });
+    }
+
+    function buildEngines(list) {
+      var FS = window.FlexSearch;
+      var cjk = FS.Charset && FS.Charset.CJK;
+      var opts = cjk ? { encoder: cjk } : {};
+      var out = {};
+      for (var f = 0; f < SEARCH_FIELDS.length; f++) { out[SEARCH_FIELDS[f][0]] = new FS.Index(opts); }
+      for (var i = 0; i < list.length; i++) {
+        var p = list[i];
+        out.title.add(i, p.title || '');
+        out.linkTitle.add(i, p.linkTitle || '');
+        out.tags.add(i, p.tags || '');
+        out.section.add(i, p.section || '');
+        out[p.members ? '_member' : 'content'].add(i, p.content || '');
+      }
+      return out;
+    }
+
+    /* 字段加权 + RRF（倒数排名融合）。FlexSearch 不返回打分（enrich 只有
+       {id, doc}），多字段也只是分组返回，所以加权融合必须自己做。 */
+    function rank(q, list, eng) {
+      var ts = termsOf(q);
+      if (!ts.length) { return []; }
+      var score = {};
+      for (var t = 0; t < ts.length; t++) {
+        for (var f = 0; f < SEARCH_FIELDS.length; f++) {
+          var name = SEARCH_FIELDS[f][0];
+          var w = SEARCH_FIELDS[f][1];
+          var hits = eng[name].search(ts[t], SEARCH_LIMIT);
+          for (var r = 0; r < hits.length; r++) {
+            var id = hits[r];
+            score[id] = (score[id] || 0) + w / (SEARCH_RRF + r + 1);
+          }
+        }
+      }
+      var rows = [];
+      for (var k in score) {
+        if (Object.prototype.hasOwnProperty.call(score, k)) { rows.push({ i: +k, s: score[k] }); }
+      }
+      rows.sort(function (a, b) {
+        if (b.s !== a.s) { return b.s - a.s; }
+        var da = list[a.i].date || '', db = list[b.i].date || '';
+        return da < db ? 1 : (da > db ? -1 : 0);
+      });
+      return rows.map(function (x) { return list[x.i]; });
+    }
+
+    /* FlexSearch 没加载出来时的降级：原来的字符子串匹配 */
+    function rankFallback(q, list) {
+      var lower = q.toLowerCase();
+      return list.filter(function (p) {
+        return (p.title + ' ' + p.content + ' ' + (p.tags || '')).toLowerCase().indexOf(lower) > -1;
+      }).sort(function (a, b) { return (a.date || '') < (b.date || '') ? 1 : -1; });
+    }
+
+    /* 摘要定位 + 高亮：以第一个命中词为中心取窗口，命中词套 <mark>。
+       原先直接把正文开头 140 字当摘要，用户常常看不出这条为什么命中。 */
+    function snippet(text, q) {
+      var body = String(text || '').replace(/\s+/g, ' ').trim();
+      var ts = termsOf(q).sort(function (a, b) { return b.length - a.length; });
+      var half = 46;                  /* 中文约 46 字，信息量≈英文 90 字符 */
+      var at = -1;
+      for (var i = 0; i < ts.length; i++) {
+        var p = body.indexOf(ts[i]);
+        if (p > -1 && (at === -1 || p < at)) { at = p; }
+      }
+      if (at === -1) { return esc(body.slice(0, half * 2)); }
+      var start = Math.max(0, at - half);
+      var end = Math.min(body.length, start + half * 2);
+      start = Math.max(0, end - half * 2);
+      var html = esc(body.slice(start, end));
+      for (var j = 0; j < ts.length; j++) {
+        var e = esc(ts[j]);
+        if (e) { html = html.split(e).join('<mark>' + e + '</mark>'); }
+      }
+      /* 两个词重叠时上面的替换会套两层，收一下 */
+      html = html.replace(/<mark>(\s*<mark>)/g, '$1').replace(/(<\/mark>\s*)<\/mark>/g, '$1');
+      return (start > 0 ? '…' : '') + html + (end < body.length ? '…' : '');
+    }
+
+    function render(hits, q) {
+      if (!hits.length) {
         box.innerHTML = '<p class="search-empty">没有找到与「' + esc(q) + '」相关的内容。</p>';
         return;
       }
-      var html = '<p class="search-count">共找到 <strong>' + pages.length + '</strong> 条结果</p><ul>';
-      pages.slice(0, 100).forEach(function (p) {
+      var html = '<p class="search-count">共找到 <strong>' + hits.length + '</strong> 条结果</p><ul>';
+      hits.slice(0, 50).forEach(function (p) {
         /* 标题用 h2 不用 h3：搜索页的 h1 是「站内搜索」，下面直接跳到 h3
            是跳级（读屏的标题导航会缺一层）。样式由 .search-result h2 接管 */
+        var meta = [esc(p.url)];
+        if (p.date) { meta.push(esc(p.date)); }
+        if (p.section) { meta.push(esc(p.section)); }
         html += '<li class="search-result">' +
                 '<h2><a href="' + esc(p.url) + '">' + esc(p.title) + '</a></h2>' +
-                '<div class="url">' + esc(p.url) + ' · ' + esc(p.date) +
-                (p.section ? ' · ' + esc(p.section) : '') + '</div>' +
-                '<div class="excerpt">' + esc(p.excerpt) + '</div></li>';
+                '<div class="url">' + meta.join(' · ') + '</div>' +
+                '<p class="excerpt">' + snippet(p.content || p.excerpt || '', q) + '</p></li>';
       });
       box.innerHTML = html + '</ul>';
     }
 
+    function run(list, q) {
+      pages = list;
+      if (!engines && window.FlexSearch && window.FlexSearch.Index) { engines = buildEngines(list); }
+      render(engines ? rank(q, list, engines) : rankFallback(q, list), q);
+    }
+
     function search(q) {
       if (!q) { box.innerHTML = ''; return; }
-      var run = function (pages) {
-        cache = pages;
-        var lower = q.toLowerCase();
-        var hits = pages.filter(function (p) {
-          return (p.title + ' ' + p.content + ' ' + (p.tags || '')).toLowerCase().indexOf(lower) > -1;
-        });
-        hits.sort(function (a, b) { return a.date < b.date ? 1 : -1; });
-        render(hits, q);
-      };
-      if (cache) { run(cache); return; }
+      if (pages) { run(pages, q); return; }
+
+      /* 优先用内联索引：离线双击版（file://）下 fetch 会被 CORS 拦死 */
+      var inline = document.getElementById('search-index');
+      if (inline) {
+        try { run(JSON.parse(inline.textContent || inline.innerHTML), q); return; } catch (e) { /* 落到 fetch */ }
+      }
+
       box.innerHTML = '<p class="search-empty">正在加载索引…</p>';
-      fetch(indexUrl).then(function (r) { return r.json(); }).then(run).catch(function () {
-        box.innerHTML = '<p class="search-empty">索引加载失败，请确认已执行 hugo 构建。</p>';
+      fetch(indexUrl).then(function (r) { return r.json(); }).then(function (list) {
+        run(list, q);
+      }).catch(function () {
+        box.innerHTML = '<p class="search-empty">索引加载失败，请确认已执行 hugo 构建（离线双击版请确认索引已内联）。</p>';
       });
     }
 

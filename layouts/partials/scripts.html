@@ -14,6 +14,17 @@
 }
 </script>
 
+{{- /* 站内搜索的检索引擎：vendored FlexSearch（Apache-2.0）。
+       版本与来源见 assets/js/vendor/README.txt；已在包里 minify 过，这里只做指纹。
+       ⚠ **只在搜索页加载**：它有 ~10.7KB gzip，挂在全站等于每页都为一个几乎用不到的
+         功能付费（搜索页另有内联索引 ~7.4KB gzip，也只在这一页）。
+       ⚠ 必须排在 theme.js 之前：initSearch() 读 window.FlexSearch，读不到就降级为
+         字符子串匹配（搜索不会整个失效，只是没有相关性排序）。 */ -}}
+{{- if eq .Layout "search" }}
+{{- $fs := resources.Get "js/vendor/flexsearch.min.js" | fingerprint }}
+<script src="{{ $fs.RelPermalink }}" integrity="{{ $fs.Data.Integrity }}"></script>
+{{- end }}
+
 {{- $js := resources.Get "js/theme.js" | minify | fingerprint }}
 <script src="{{ $js.RelPermalink }}" integrity="{{ $js.Data.Integrity }}"></script>
 

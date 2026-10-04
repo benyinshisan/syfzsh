@@ -53,9 +53,10 @@ public/ 等    ← 构建产物，**都可再生、不要手改、不进 git**
 | `layouts/partials/components/` | 跨页复用的小块：板块标题、缩略图、分页器、面包屑、侧栏… |
 | `layouts/partials/home/` | 首页 7 个版块，一个版块一个文件 |
 | `layouts/index.html` | 首页，本身只有 62 行：把上面 7 个版块排一下 |
-| `layouts/index.searchindex.json` | 搜索索引的产出格式（跟着上面的文章自动生成） |
+| `layouts/index.searchindex.json` | 搜索索引的产出格式；**字段定义在 `layouts/partials/search-index-data.html`**（搜索页内联的是同一份数据） |
 | `assets/css/` | 四层样式：`tokens`（设计令牌，换肤只改它）→ `base`（重置与排版）→ `components`（组件）→ `pages`（页面）。约定**底层不引用上层**，构建时拼成一个 `site.css` |
-| `assets/js/theme.js` | 全站唯一一份 JS（ES5、无依赖、无构建），7 个初始化函数 |
+| `assets/js/theme.js` | 唯一的**手写** JS（ES5、无构建），7 个初始化函数 |
+| `assets/js/vendor/flexsearch.min.js` | 站内搜索的检索引擎（Apache-2.0，来源/版本/更新方式见同目录 `README.txt`）。**只在搜索页加载**，别挂到全站 |
 | `assets/uploads/` | 图片原图，按栏目分目录。Hugo 从这里取图做缩放/转 WebP/补宽高 |
 
 ## 3. 怕踩坑就看这节

@@ -1,0 +1,40 @@
+{{- /*
+  站内搜索索引的数据源（**唯一**一份字段定义）
+  ---------------------------------------------------------------------------
+  两处消费它，改字段只需改这里：
+    · layouts/index.searchindex.json —— 独立的 /searchindex.json（fetch 兜底）
+    · layouts/_default/search.html   —— 内联进搜索页（file:// 离线版必需：
+      fetch 在 file:// 下被 CORS 拦死，只有内联才救得活离线搜索）
+
+  字段说明：
+    title           标题（**只放 .Title**：它同时是要显示给用户看的标题）
+    linkTitle       单位简称等，**只参与检索、不显示**（早先把它拼进 title，
+                    结果列表里会显示成「商会简介 商会简介」）
+    url             .RelPermalink（带 /syfzsh/ 子路径，线上可直接点）
+    date            无日期时给空串 —— 早先是 0001-01-01，会原样显示给用户
+    section/tags    栏目名与标签，参与检索（权重低于标题）
+    excerpt         140 字摘要，用于结果列表的兜底展示
+    content         **全文**（原先截断到 400 字，导致长文后半段搜不到）
+    members         是否会员条目（占位正文与其他栏目高度重复，检索时单独低权重）
+*/ -}}
+{{- $out := slice -}}
+{{- range where site.RegularPages "Kind" "page" -}}
+  {{- $section := "" -}}
+  {{- with .CurrentSection }}{{ $section = .Title }}{{ end -}}
+  {{- $tags := .Params.tags | default (slice) -}}
+  {{- $plain := .Plain | plainify | htmlUnescape -}}
+  {{- $date := "" -}}
+  {{- if not .Date.IsZero }}{{ $date = .Date.Format "2006-01-02" }}{{ end -}}
+  {{- $out = $out | append (dict
+        "title"     .Title
+        "linkTitle" (.LinkTitle | default "")
+        "url"       .RelPermalink
+        "date"      $date
+        "section"   $section
+        "tags"      (delimit $tags " ")
+        "excerpt"   ($plain | truncate 140)
+        "content"   $plain
+        "members"   (eq .Type "member")
+      ) -}}
+{{- end -}}
+{{- return $out -}}
