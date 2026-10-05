@@ -9,7 +9,7 @@ photosEnv:
   - image: /uploads/members/env/community_image_1399352746.png
   - image: /uploads/members/env/屏幕截图-2022-09-14-223547.jpg
 date: 2026-09-27T00:00:00+08:00
-weight: 20
+weight: 9
 type: member
 ---
 此处于「会员天地 / 会员单位」的企业介绍。

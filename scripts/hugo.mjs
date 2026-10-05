@@ -10,7 +10,14 @@
  * Windows/macOS 上执行，只会让 clone 变慢，已经删掉。
  * 安装方式见 README：Windows 用 `winget install Hugo.Hugo.Extended`。
  *
- * 用法：node scripts/hugo.mjs server -D
+ * ⚠ 跨挂载点时 `hugo server` 收不到文件变更事件：
+ *   项目目录挂在 Windows 盘、由 Linux 侧（容器 / WSL / 远程开发）访问时，
+ *   底层收不到 inotify 事件，Hugo 默认的 fsnotify 监听器不会触发重建 ——
+ *   表现是「保存了但站点不更新、后台右栏预览也不自动刷新」。
+ *   所以 `npm run dev` 带了 `--poll 700ms` 改用轮询，详见 README 的「启动」一节。
+ *   本机文件系统上不需要它，去掉更省资源。
+ *
+ * 用法：node scripts/hugo.mjs server -D --poll 700ms
  */
 import { spawn } from 'node:child_process';
 import { existsSync } from 'node:fs';

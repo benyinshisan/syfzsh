@@ -4,7 +4,7 @@ slug: member-04
 linkTitle: "示例会员单位 04"
 type: member
 date: 2026-09-27T00:00:00+08:00
-weight: 50
+weight: 4
 summary: "占位会员单位，正式发布前请替换为真实企业信息。"
 # ---- 以下字段留空不影响构建，补上后前台自动显示 ----
 # image: "/uploads/members/example.png"   # 企业 LOGO，留空时渲染 CSS 占位块

@@ -21,6 +21,22 @@ Windows 上把 `hugo.exe` 直接放在仓库根目录即可，`scripts/hugo.mjs`
 npm run dev     # 站点：http://localhost:1313
 ```
 
+### ⚠ `dev` 为什么带 `--poll 700ms`
+
+因为**项目目录经常挂在 Windows 盘上、由 Linux 侧访问**（容器 / WSL / 远程开发）。
+这种跨挂载点的目录**收不到 inotify 事件**，Hugo 默认的 fsnotify 监听器什么都听不到，
+表现为：
+
+- 保存文件后 `hugo server` **不重建**（命令行里看不到新的构建输出）
+- 后台编辑器（`hugo-editor/`）右栏预览**不自动刷新**，只有点「刷新」按钮才更新
+
+`--poll 700ms` 让 Hugo 改用**轮询**检查文件变更，跨挂载点也能触发。
+代价是每 700ms 扫一遍目录 —— 本项目量级下开销可忽略。
+
+> 反过来：如果项目在**本机文件系统**上（原生 Linux / macOS，或 Hugo 直接跑在
+> Windows 侧），轮询是多余的，把 `--poll 700ms` 去掉更省资源。
+> 觉得扫得太勤就调大，例如 `--poll 2000ms`。
+
 ## 构建
 
 ```bash

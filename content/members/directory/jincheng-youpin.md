@@ -23,7 +23,7 @@ slug: jincheng-youpin
 linkTitle: 金城优品
 
 date: 2026-09-27T09:00:00+08:00
-weight: 10
+weight: 1
 
 # 单位 LOGO。三处使用：名录卡片、首页 LOGO 墙、本页页头。
 # 本站占位图，纯图形、不含任何真实机构信息。
